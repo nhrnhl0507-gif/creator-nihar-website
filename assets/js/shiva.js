@@ -12,7 +12,9 @@
   // Config & State
   const RECIPIENT_EMAIL = 'nhrnhl0507@gmail.com';
   const BACKEND_ENDPOINT = '/api/booking';
-  const FORMSUBMIT_ENDPOINT = `https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`;
+  const WEB3FORMS_ENDPOINT = 'https://api.web3forms.com/submit';
+  // Web3Forms Access Key: Enter your key below or from window.WEB3FORMS_ACCESS_KEY
+  const WEB3FORMS_ACCESS_KEY = typeof window !== 'undefined' && window.WEB3FORMS_ACCESS_KEY ? window.WEB3FORMS_ACCESS_KEY : '';
 
   const bookingState = {
     step: 'IDLE',
@@ -727,6 +729,7 @@
      AUTOMATIC EMAIL NOTIFICATION & CONFIRMATION
      ========================================================================== */
   function submitNativeForm(d, emailSubject, emailBody, timestamp) {
+    if (!WEB3FORMS_ACCESS_KEY) return false;
     try {
       let iframe = document.getElementById('shiva_hidden_iframe');
       if (!iframe) {
@@ -742,15 +745,15 @@
 
       form = document.createElement('form');
       form.id = 'shiva_native_booking_form';
-      form.action = `https://formsubmit.co/${RECIPIENT_EMAIL}`;
+      form.action = WEB3FORMS_ENDPOINT;
       form.method = 'POST';
       form.target = 'shiva_hidden_iframe';
       form.style.display = 'none';
 
       const fields = {
-        '_subject': emailSubject,
-        '_captcha': 'false',
-        '_template': 'table',
+        'access_key': WEB3FORMS_ACCESS_KEY,
+        'subject': emailSubject,
+        'from_name': 'Creator Nihar Shiva AI',
         'Booking ID': d.bookingId,
         'Customer Name': d.name,
         'Customer Email': d.email,
@@ -761,8 +764,7 @@
         'Deadline': d.deadline || 'Flexible',
         'Project Details': d.details,
         'Additional Requirements': d.additional || 'None',
-        'Booking Date & Time': timestamp,
-        'Full Booking Dossier': emailBody
+        'Booking Date & Time': timestamp
       };
 
       for (const [key, val] of Object.entries(fields)) {
@@ -803,32 +805,19 @@
     if (!d.bookingId) d.bookingId = generateBookingId();
     const timestamp = getTimestamp();
 
-    const emailSubject = `New Creator Nihar Service Booking - ${d.service}`;
+    const emailSubject = `New Creator Nihar Service Booking - ${d.service} [${d.bookingId}]`;
     const emailBody = `NEW CREATOR NIHAR SERVICE BOOKING
+--------------------------------------------------
+Booking ID: ${d.bookingId}
 
-Booking ID:
-${d.bookingId}
+Customer Name: ${d.name}
+Customer Email: ${d.email}
+Phone / WhatsApp: ${d.phone}
 
-Customer Name:
-${d.name}
-
-Customer Email:
-${d.email}
-
-Phone / WhatsApp:
-${d.phone}
-
-Selected Service:
-${d.service}
-
-Project / Brand:
-${d.project || 'Not specified'}
-
-Budget:
-${d.budget || 'To be discussed'}
-
-Deadline:
-${d.deadline || 'Flexible'}
+Selected Service: ${d.service}
+Project / Brand: ${d.project || 'Not specified'}
+Budget: ${d.budget || 'To be discussed'}
+Deadline: ${d.deadline || 'Flexible'}
 
 Project Details:
 ${d.details}
@@ -836,17 +825,13 @@ ${d.details}
 Additional Requirements:
 ${d.additional || 'None'}
 
-Booking Date & Time:
-${timestamp}`;
+Booking Date & Time: ${timestamp}
+--------------------------------------------------`;
 
     // Add typing indicator
     showTyping();
 
     let emailSuccessful = false;
-    let activationRequired = false;
-
-    // Always trigger native form submission in parallel
-    submitNativeForm(d, emailSubject, emailBody, timestamp);
 
     // 1. First attempt: Serverless / Node.js backend endpoint
     try {
@@ -881,18 +866,19 @@ ${timestamp}`;
       // Backend not available (static host)
     }
 
-    // 2. Second attempt: Direct FormSubmit AJAX
-    if (!emailSuccessful) {
+    // 2. Second attempt: Web3Forms API (if access key configured)
+    if (!emailSuccessful && WEB3FORMS_ACCESS_KEY && WEB3FORMS_ACCESS_KEY.trim() !== '') {
       try {
-        const formSubmitRes = await fetch(FORMSUBMIT_ENDPOINT, {
+        const w3Res = await fetch(WEB3FORMS_ENDPOINT, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
           body: JSON.stringify({
-            _subject: emailSubject,
-            _captcha: 'false',
+            access_key: WEB3FORMS_ACCESS_KEY,
+            subject: emailSubject,
+            from_name: 'Creator Nihar Shiva AI',
             booking_id: d.bookingId,
             customer_name: d.name,
             customer_email: d.email,
@@ -908,16 +894,14 @@ ${timestamp}`;
           })
         });
 
-        if (formSubmitRes.ok) {
-          const resData = await formSubmitRes.json();
-          if (resData.success === 'true' || resData.success === true) {
+        if (w3Res.ok) {
+          const resData = await w3Res.json();
+          if (resData.success === true || resData.success === 'true') {
             emailSuccessful = true;
-          } else if (resData.message && resData.message.toLowerCase().includes('activation')) {
-            activationRequired = true;
           }
         }
-      } catch (fsErr) {
-        console.warn('FormSubmit AJAX error:', fsErr);
+      } catch (w3Err) {
+        console.warn('Web3Forms API error:', w3Err);
       }
     }
 
@@ -949,21 +933,22 @@ ${timestamp}`;
       addBotMessage(successHtml);
     } else {
       // Failure state: Do NOT falsely claim email was sent
-      let extraNote = '';
-      if (activationRequired) {
-        extraNote = `<br><br><small style="color:#64748B;">ℹ️ Notice for Nihar: FormSubmit has sent an 'Activate Form' email to <strong>${RECIPIENT_EMAIL}</strong>. Click 'Activate Form' in your inbox once to enable instant automated delivery.</small>`;
-      }
+      // Provide direct Gmail 1-Click + Call + WhatsApp + Retry
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${RECIPIENT_EMAIL}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+      const waUrl = `https://wa.me/917723913729?text=${encodeURIComponent('Hello Nihar, I submitted a service booking on your website:\n\n' + emailBody)}`;
 
       const errorHtml = `
         <div class="shiva-error-box">
           ⚠️ आपकी booking अभी submit नहीं हो पाई। कृपया कुछ समय बाद दोबारा कोशिश करें या सीधे Nihar से संपर्क करें।
-          ${extraNote}
           <div class="shiva-contact-links">
             <a href="tel:+917723913729" class="shiva-contact-link shiva-contact-phone">
               📞 Call Nihar
             </a>
-            <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer" class="shiva-contact-link shiva-contact-wa">
+            <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="shiva-contact-link shiva-contact-wa">
               💬 WhatsApp Nihar
+            </a>
+            <a href="${gmailUrl}" target="_blank" rel="noopener noreferrer" class="shiva-contact-link" style="background:#EA4335; color:#ffffff; font-weight:600;">
+              ✉️ Send via Gmail
             </a>
           </div>
         </div>
