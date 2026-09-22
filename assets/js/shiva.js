@@ -92,6 +92,10 @@
           </div>
         </div>
         <div class="shiva-header-actions">
+          <button type="button" class="shiva-voice-btn" id="shivaVoiceHeaderBtn" title="Live Voice Mode">
+            <img src="assets/images/favicon-48x48.png" alt="Voice" class="voice-btn-logo" onerror="this.src='../assets/images/favicon-48x48.png'">
+            <span>🎙️ Live Voice</span>
+          </button>
           <button type="button" class="shiva-action-btn btn-reset" title="Reset Chat">↺</button>
           <button type="button" class="shiva-action-btn btn-close" title="Close Chat">✕</button>
         </div>
@@ -99,6 +103,10 @@
       <div class="shiva-messages" id="shivaMessages"></div>
       <div class="shiva-footer">
         <form class="shiva-input-form" id="shivaForm" onsubmit="return false;">
+          <button type="button" class="shiva-voice-btn" id="shivaVoiceFooterBtn" title="Live Voice Mode" style="padding: 5px 10px; margin-right: 6px;">
+            <img src="assets/images/favicon-48x48.png" alt="Voice" class="voice-btn-logo" onerror="this.src='../assets/images/favicon-48x48.png'">
+            <span>🎙️</span>
+          </button>
           <input type="text" class="shiva-input" id="shivaInput" placeholder="Type your message..." autocomplete="off">
           <button type="submit" class="shiva-send-btn" id="shivaSendBtn" aria-label="Send message">
             <svg viewBox="0 0 24 24">
@@ -121,6 +129,11 @@
     chatContainer.querySelector('.btn-reset').addEventListener('click', resetChat);
     chatForm.addEventListener('submit', handleUserSubmit);
 
+    const headerVoiceBtn = document.getElementById('shivaVoiceHeaderBtn');
+    if (headerVoiceBtn) headerVoiceBtn.addEventListener('click', startLiveVoiceSession);
+    const footerVoiceBtn = document.getElementById('shivaVoiceFooterBtn');
+    if (footerVoiceBtn) footerVoiceBtn.addEventListener('click', startLiveVoiceSession);
+
     // Event delegation for all action buttons inside messagesContainer
     messagesContainer.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
@@ -129,6 +142,9 @@
       const text = btn.innerText.trim();
       handleOptionClick(action, text);
     });
+
+    // Initialize Live Voice Mode
+    initLiveVoiceMode();
 
     // Initial greeting
     showInitialGreeting();
@@ -170,6 +186,9 @@
       नमस्ते! 🙏 मैं <strong>Shiva</strong>, Creator Nihar का AI Assistant हूँ।<br><br>
       मैं आपकी क्या मदद कर सकता हूँ? नीचे दिए गए विकल्प चुनें या अपना सवाल पूछें:
       <div class="shiva-options">
+        <button type="button" class="shiva-opt-btn shiva-opt-orange" data-action="start_voice">
+          🎙️ Live Voice Mode
+        </button>
         <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="start_booking">
           📋 Service Book करें
         </button>
@@ -231,6 +250,11 @@
   // Handle Option Clicks
   function handleOptionClick(action, text) {
     if (!action) return;
+
+    if (action === 'start_voice') {
+      startLiveVoiceSession();
+      return;
+    }
 
     // Actions that shouldn't echo user message
     if (action !== 'confirm_booking') {
@@ -1558,6 +1582,467 @@ Booking Date & Time: ${timestamp}
   function removeTyping() {
     const typing = document.getElementById('shivaTyping');
     if (typing) typing.remove();
+  }
+
+  /* ==========================================================================
+     CREATOR NIHAR LIVE VOICE MODE CONTROLLER 🎙️
+     ========================================================================== */
+  let voiceOverlay = null;
+  let voiceBadge = null;
+  let voiceSubUser = null;
+  let voiceSubBot = null;
+  let voiceOrb = null;
+  let voiceMuteBtn = null;
+  let voiceStopBtn = null;
+  let voiceExitBtn = null;
+  let voiceCloseBtn = null;
+
+  let recognition = null;
+  let isListening = false;
+  let isSpeaking = false;
+  let isVoiceMuted = false;
+  let voiceSessionActive = false;
+  let availableVoices = [];
+
+  function initLiveVoiceMode() {
+    if (document.getElementById('shivaVoiceOverlay')) return;
+
+    voiceOverlay = document.createElement('div');
+    voiceOverlay.className = 'shiva-voice-overlay';
+    voiceOverlay.id = 'shivaVoiceOverlay';
+    voiceOverlay.style.display = 'none';
+    voiceOverlay.innerHTML = `
+      <div class="shiva-voice-header">
+        <div class="shiva-voice-brand">
+          <img src="assets/images/favicon-96x96.png" alt="Creator Nihar" class="shiva-voice-logo" onerror="this.src='../assets/images/favicon-96x96.png'">
+          <div class="shiva-voice-title">
+            <h3>Shiva Live Voice</h3>
+            <p>Creator Nihar Official AI</p>
+          </div>
+        </div>
+        <button type="button" class="shiva-voice-close-btn" id="shivaVoiceCloseBtn" title="Close Voice Mode">✕</button>
+      </div>
+
+      <div class="shiva-voice-body">
+        <div class="shiva-voice-orb-wrapper">
+          <div class="shiva-voice-ring ring-1"></div>
+          <div class="shiva-voice-ring ring-2"></div>
+          <div class="shiva-voice-ring ring-3"></div>
+          <div class="shiva-voice-orb" id="shivaVoiceOrb">
+            <img src="assets/images/favicon-96x96.png" alt="Shiva Voice Orb" onerror="this.src='../assets/images/favicon-96x96.png'">
+          </div>
+        </div>
+
+        <div class="shiva-voice-state-badge" id="shivaVoiceBadge">🎙️ Initializing...</div>
+
+        <div class="shiva-voice-subtitles" id="shivaVoiceSubtitles">
+          <div class="shiva-voice-sub-user voice-caption-user" id="shivaVoiceSubUser"></div>
+          <div class="shiva-voice-sub-bot voice-caption-bot" id="shivaVoiceSubBot"></div>
+        </div>
+
+        <div class="shiva-voice-controls">
+          <button type="button" class="shiva-voice-ctrl-btn" id="shivaVoiceMuteBtn" title="Mute / Unmute Microphone">
+            <span class="ctrl-icon">🎤</span>
+            <span class="ctrl-label">Mute</span>
+          </button>
+          <button type="button" class="shiva-voice-ctrl-btn btn-stop ctrl-stop" id="shivaVoiceStopBtn" title="Interrupt / Stop Speaking">
+            <span class="ctrl-icon">⏹️</span>
+            <span class="ctrl-label">Stop</span>
+          </button>
+          <button type="button" class="shiva-voice-ctrl-btn ctrl-close" id="shivaVoiceExitBtn" title="Exit Voice Mode">
+            <span class="ctrl-icon">✕</span>
+            <span class="ctrl-label">Exit</span>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(voiceOverlay);
+
+    // Cache elements
+    voiceBadge = document.getElementById('shivaVoiceBadge');
+    voiceSubUser = document.getElementById('shivaVoiceSubUser');
+    voiceSubBot = document.getElementById('shivaVoiceSubBot');
+    voiceOrb = document.getElementById('shivaVoiceOrb');
+    voiceMuteBtn = document.getElementById('shivaVoiceMuteBtn');
+    voiceStopBtn = document.getElementById('shivaVoiceStopBtn');
+    voiceExitBtn = document.getElementById('shivaVoiceExitBtn');
+    voiceCloseBtn = document.getElementById('shivaVoiceCloseBtn');
+
+    // Event listeners
+    if (voiceCloseBtn) voiceCloseBtn.addEventListener('click', closeLiveVoiceSession);
+    if (voiceExitBtn) voiceExitBtn.addEventListener('click', closeLiveVoiceSession);
+    if (voiceMuteBtn) voiceMuteBtn.addEventListener('click', toggleVoiceMute);
+    if (voiceStopBtn) voiceStopBtn.addEventListener('click', interruptVoiceSpeaking);
+    if (voiceOrb) {
+      voiceOrb.addEventListener('click', () => {
+        if (isSpeaking) {
+          interruptVoiceSpeaking();
+        }
+      });
+    }
+
+    // Cache speech synthesis voices
+    if ('speechSynthesis' in window) {
+      availableVoices = window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        availableVoices = window.speechSynthesis.getVoices();
+      };
+    }
+
+    // Initialize Speech Recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'hi-IN';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+          isListening = true;
+          setVoiceState('listening');
+        };
+
+        recognition.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+
+          if (interimTranscript) {
+            voiceSubUser.textContent = `“${interimTranscript}”`;
+          }
+
+          if (finalTranscript) {
+            voiceSubUser.textContent = `“${finalTranscript}”`;
+            setVoiceState('processing');
+            try {
+              recognition.stop();
+            } catch (e) {}
+            isListening = false;
+            handleVoiceUserInput(finalTranscript.trim());
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.warn('SpeechRecognition error:', event.error);
+          if (event.error === 'no-speech') {
+            if (voiceSessionActive && !isSpeaking && !isVoiceMuted) {
+              setTimeout(() => {
+                if (voiceSessionActive && !isSpeaking && !isVoiceMuted) {
+                  startListening();
+                }
+              }, 600);
+            }
+          } else if (event.error === 'not-allowed') {
+            setVoiceState('idle');
+            if (voiceBadge) voiceBadge.textContent = '⚠️ Mic access denied';
+            if (voiceSubBot) voiceSubBot.textContent = 'Microphone permission was denied. Please allow microphone access in your browser settings to use Live Voice.';
+          }
+        };
+
+        recognition.onend = () => {
+          isListening = false;
+          if (voiceSessionActive && !isSpeaking && !isVoiceMuted && voiceOverlay && (voiceOverlay.dataset.state === 'listening')) {
+            startListening();
+          }
+        };
+      } catch (e) {
+        console.warn('SpeechRecognition init error:', e);
+      }
+    }
+  }
+
+  function startLiveVoiceSession() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const hasSpeech = 'speechSynthesis' in window;
+    if (!SpeechRecognition || !hasSpeech) {
+      alert('Live Voice Mode is not supported in this browser. Please use Google Chrome, Microsoft Edge, or Safari.');
+      return;
+    }
+
+    initLiveVoiceMode();
+
+    if (chatContainer) {
+      chatContainer.classList.remove('active');
+    }
+
+    if (voiceOverlay) {
+      voiceOverlay.style.display = 'flex';
+      setTimeout(() => {
+        if (voiceOverlay) voiceOverlay.classList.add('active');
+      }, 10);
+      voiceSessionActive = true;
+      isVoiceMuted = false;
+      updateMuteButton();
+
+      // Welcome flow: First speak the welcome message aloud, then automatically activate mic
+      const welcomeSpeech = "आपका बहुत-बहुत स्वागत है Creator Nihar वेबसाइट में। मैं Shiva, Creator Nihar का AI Assistant हूँ। मैं आपकी क्या मदद कर सकता हूँ?";
+      const welcomeDisplay = "🙏 आपका बहुत-बहुत स्वागत है Creator Nihar वेबसाइट में।\nमैं Shiva, Creator Nihar का AI Assistant हूँ।\nमैं आपकी क्या मदद कर सकता हूँ?";
+
+      if (voiceSubUser) voiceSubUser.textContent = '';
+      if (voiceSubBot) voiceSubBot.textContent = welcomeDisplay;
+
+      speakText(welcomeSpeech, 'hi', () => {
+        // Automatic mic activation after welcome finishes
+        if (voiceSessionActive && !isVoiceMuted) {
+          startListening();
+        }
+      });
+    }
+  }
+
+  function closeLiveVoiceSession() {
+    voiceSessionActive = false;
+    isListening = false;
+    isSpeaking = false;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (recognition) {
+      try {
+        recognition.abort();
+      } catch (e) {}
+    }
+    if (voiceOverlay) {
+      voiceOverlay.classList.remove('active');
+      setTimeout(() => {
+        if (voiceOverlay && !voiceSessionActive) {
+          voiceOverlay.style.display = 'none';
+        }
+      }, 400);
+      setVoiceState('idle');
+    }
+  }
+
+  function startListening() {
+    if (!voiceSessionActive || isVoiceMuted || isSpeaking) return;
+    if (!recognition) return;
+    try {
+      setVoiceState('listening');
+      recognition.start();
+    } catch (e) {
+      // If already started or aborting
+      console.warn('Recognition start exception:', e);
+    }
+  }
+
+  function setVoiceState(state) {
+    if (!voiceOverlay) return;
+    voiceOverlay.classList.remove(
+      'state-listening', 'shiva-state-listening',
+      'state-processing', 'shiva-state-processing',
+      'state-speaking', 'shiva-state-speaking'
+    );
+    voiceOverlay.dataset.state = state;
+
+    if (state === 'listening') {
+      voiceOverlay.classList.add('state-listening', 'shiva-state-listening');
+      if (voiceBadge) voiceBadge.textContent = '🎙️ Listening...';
+    } else if (state === 'processing') {
+      voiceOverlay.classList.add('state-processing', 'shiva-state-processing');
+      if (voiceBadge) voiceBadge.textContent = '🧠 Processing...';
+    } else if (state === 'speaking') {
+      voiceOverlay.classList.add('state-speaking', 'shiva-state-speaking');
+      if (voiceBadge) voiceBadge.textContent = '🔊 Shiva Speaking...';
+    } else if (state === 'muted') {
+      if (voiceBadge) voiceBadge.textContent = '🔇 Microphone Muted';
+    } else {
+      if (voiceBadge) voiceBadge.textContent = '🎙️ Ready';
+    }
+  }
+
+  function cleanTextForSpeech(html) {
+    if (!html) return '';
+    let text = html.replace(/<[^>]*>/g, ' ');
+    text = text.replace(/₹\s*1[,.]?500/g, '1,500 rupees');
+    text = text.replace(/₹\s*20[,.]?000/g, '20,000 rupees');
+    text = text.replace(/₹/g, ' rupees ');
+    text = text.replace(/[\u{1F300}-\u{1FAFF}]|[\u{2600}-\u{27BF}]/gu, '');
+    text = text.replace(/•/g, ', ');
+    text = text.replace(/&amp;/g, 'and');
+    text = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+    text = text.replace(/\s+/g, ' ').trim();
+    return text;
+  }
+
+  function isVoiceBookingIntent(text) {
+    const lower = text.toLowerCase();
+    const bookingKeywords = [
+      'service book', 'book service', 'booking', 'book karni', 'book karna',
+      'website banwani', 'website banani', 'website chahiye', 'website bana', 'website order',
+      'video banwani', 'video banani', 'video chahiye', 'video bana', 'video order',
+      'book a service', 'book website', 'book video', 'hire', 'kaam karwana',
+      'mujhe website', 'mujhe video', 'service leni'
+    ];
+    return bookingKeywords.some(kw => lower.includes(kw));
+  }
+
+  function speakText(text, lang, onEndCallback) {
+    if (!('speechSynthesis' in window)) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = (lang === 'en') ? 'en-IN' : 'hi-IN';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
+    let selectedVoice = null;
+    if (lang === 'hi' || lang === 'hinglish') {
+      selectedVoice = voices.find(v => v.lang === 'hi-IN' || v.lang.startsWith('hi')) ||
+                      voices.find(v => v.name.toLowerCase().includes('hindi') || v.name.toLowerCase().includes('india')) ||
+                      voices.find(v => v.lang === 'en-IN');
+    } else {
+      selectedVoice = voices.find(v => v.lang === 'en-IN') ||
+                      voices.find(v => v.lang.startsWith('en')) ||
+                      voices.find(v => v.default);
+    }
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    isSpeaking = true;
+    setVoiceState('speaking');
+
+    utterance.onend = () => {
+      isSpeaking = false;
+      if (onEndCallback) {
+        onEndCallback();
+      }
+    };
+
+    utterance.onerror = (e) => {
+      console.warn('SpeechSynthesis error:', e);
+      isSpeaking = false;
+      if (onEndCallback) {
+        onEndCallback();
+      }
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function handleVoiceUserInput(userText) {
+    if (!userText) {
+      if (voiceSessionActive && !isVoiceMuted) startListening();
+      return;
+    }
+
+    // 1. Check for booking trigger
+    if (isVoiceBookingIntent(userText)) {
+      const confirmBookingSpeech = "बहुत बढ़िया! आइए आपकी बुकिंग शुरू करते हैं।";
+      if (voiceSubBot) voiceSubBot.textContent = confirmBookingSpeech;
+      speakText(confirmBookingSpeech, 'hi', () => {
+        closeLiveVoiceSession();
+        if (chatContainer) chatContainer.classList.add('active');
+        startServiceBooking();
+      });
+      return;
+    }
+
+    // 2. Query Knowledge Engine
+    const lang = detectLanguage(userText);
+    const cleanedText = userText.toLowerCase().replace(/[?,.!;:'"()]/g, ' ');
+    const queryWords = cleanedText.split(/\s+/).filter(w => w.length > 1);
+
+    let bestTopic = null;
+    let highestScore = 0;
+
+    for (const topic of CREATOR_NIHAR_KB) {
+      let score = 0;
+      for (const phrase of topic.phrases) {
+        if (cleanedText.includes(phrase)) score += 12;
+      }
+      for (const kw of topic.keywords) {
+        if (cleanedText.includes(kw)) score += 3;
+      }
+      for (const qw of queryWords) {
+        if (topic.keywords.some(kw => kw === qw)) score += 1;
+      }
+      if (score > highestScore) {
+        highestScore = score;
+        bestTopic = topic;
+      }
+    }
+
+    let responseText = '';
+    let spokenText = '';
+
+    if (bestTopic && highestScore >= 3) {
+      const rawHtml = bestTopic.answers[lang] || bestTopic.answers.en;
+      spokenText = cleanTextForSpeech(rawHtml);
+      responseText = spokenText;
+    } else {
+      if (lang === 'hi') {
+        spokenText = "इस जानकारी के बारे में मेरे पास सत्यापित जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं।";
+      } else if (lang === 'hinglish') {
+        spokenText = "Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain.";
+      } else {
+        spokenText = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
+      }
+      responseText = spokenText;
+    }
+
+    if (voiceSubBot) voiceSubBot.textContent = responseText;
+    speakText(spokenText, lang, () => {
+      // Natural back-and-forth: auto-resume listening for next question
+      if (voiceSessionActive && !isVoiceMuted) {
+        startListening();
+      }
+    });
+  }
+
+  function interruptVoiceSpeaking() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    isSpeaking = false;
+    if (voiceSessionActive && !isVoiceMuted) {
+      startListening();
+    }
+  }
+
+  function toggleVoiceMute() {
+    isVoiceMuted = !isVoiceMuted;
+    updateMuteButton();
+    if (isVoiceMuted) {
+      if (recognition && isListening) {
+        try { recognition.stop(); } catch (e) {}
+      }
+      isListening = false;
+      setVoiceState('muted');
+    } else {
+      if (!isSpeaking) {
+        startListening();
+      }
+    }
+  }
+
+  function updateMuteButton() {
+    if (!voiceMuteBtn) return;
+    const icon = voiceMuteBtn.querySelector('.ctrl-icon');
+    const label = voiceMuteBtn.querySelector('.ctrl-label');
+    if (isVoiceMuted) {
+      voiceMuteBtn.classList.add('muted');
+      if (icon) icon.textContent = '🔇';
+      if (label) label.textContent = 'Unmute';
+    } else {
+      voiceMuteBtn.classList.remove('muted');
+      if (icon) icon.textContent = '🎤';
+      if (label) label.textContent = 'Mute';
+    }
   }
 
 })();
