@@ -5,12 +5,9 @@
  * sets up dynamic email subject & redirect targets, and renders the success state.
  */
 
-// Web3Forms Access Key configuration
-// To enable 100% automated background email delivery without any user action:
-// 1. Visit https://web3forms.com
-// 2. Enter nhrnhl0507@gmail.com and click 'Create Access Key'
-// 3. Paste the key below:
-const WEB3FORMS_ACCESS_KEY = "";
+// Web3Forms Access Key configuration for nhrnhl0507@gmail.com
+const WEB3FORMS_ACCESS_KEY = "c5f04805-e094-4297-87ec-73f55acf118d";
+
 
 document.addEventListener('DOMContentLoaded', () => {
   initConsultationForm();

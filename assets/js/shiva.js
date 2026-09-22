@@ -13,8 +13,8 @@
   const RECIPIENT_EMAIL = 'nhrnhl0507@gmail.com';
   const BACKEND_ENDPOINT = '/api/booking';
   const WEB3FORMS_ENDPOINT = 'https://api.web3forms.com/submit';
-  // Web3Forms Access Key: Enter your key below or from window.WEB3FORMS_ACCESS_KEY
-  const WEB3FORMS_ACCESS_KEY = typeof window !== 'undefined' && window.WEB3FORMS_ACCESS_KEY ? window.WEB3FORMS_ACCESS_KEY : '';
+  // Web3Forms Access Key for nhrnhl0507@gmail.com
+  const WEB3FORMS_ACCESS_KEY = 'c5f04805-e094-4297-87ec-73f55acf118d';
 
   const bookingState = {
     step: 'IDLE',
