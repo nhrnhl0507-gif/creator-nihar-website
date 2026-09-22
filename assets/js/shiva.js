@@ -879,19 +879,22 @@ Booking Date & Time: ${timestamp}
             access_key: WEB3FORMS_ACCESS_KEY,
             subject: emailSubject,
             from_name: 'Creator Nihar Shiva AI',
-            booking_id: d.bookingId,
-            customer_name: d.name,
-            customer_email: d.email,
-            phone_whatsapp: d.phone,
-            selected_service: d.service,
-            project_brand: d.project || 'Not specified',
-            budget: d.budget || 'To be discussed',
-            deadline: d.deadline || 'Flexible',
-            project_details: d.details,
-            additional_requirements: d.additional || 'None',
-            booking_timestamp: timestamp,
+            name: d.name,
+            email: d.email,
+            'Booking ID': d.bookingId,
+            'Customer Name': d.name,
+            'Customer Email': d.email,
+            'Phone / WhatsApp': d.phone,
+            'Selected Service': d.service,
+            'Project / Brand': d.project || 'Not specified',
+            'Budget': d.budget || 'To be discussed',
+            'Deadline': d.deadline || 'Flexible',
+            'Project Details': d.details,
+            'Additional Requirements': d.additional || 'None',
+            'Booking Date & Time': timestamp,
             message: emailBody
           })
+
         });
 
         if (w3Res.ok) {
