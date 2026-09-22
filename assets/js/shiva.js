@@ -16,6 +16,7 @@
 
   const bookingState = {
     step: 'IDLE',
+    editingField: null,
     data: {
       name: '',
       email: '',
@@ -118,6 +119,15 @@
     chatContainer.querySelector('.btn-reset').addEventListener('click', resetChat);
     chatForm.addEventListener('submit', handleUserSubmit);
 
+    // Event delegation for all action buttons inside messagesContainer
+    messagesContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.getAttribute('data-action');
+      const text = btn.innerText.trim();
+      handleOptionClick(action, text);
+    });
+
     // Initial greeting
     showInitialGreeting();
   }
@@ -136,6 +146,7 @@
   function resetChat() {
     messagesContainer.innerHTML = '';
     bookingState.step = 'IDLE';
+    bookingState.editingField = null;
     bookingState.data = {
       name: '',
       email: '',
@@ -189,16 +200,6 @@
     `;
     messagesContainer.appendChild(msgDiv);
     scrollMessagesToBottom();
-
-    // Bind option buttons in this message
-    const optionBtns = msgDiv.querySelectorAll('.shiva-opt-btn');
-    optionBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const action = btn.getAttribute('data-action');
-        const text = btn.innerText.trim();
-        handleOptionClick(action, text);
-      });
-    });
   }
 
   // Add a user message
@@ -227,7 +228,12 @@
 
   // Handle Option Clicks
   function handleOptionClick(action, text) {
-    addUserMessage(text);
+    if (!action) return;
+
+    // Actions that shouldn't echo user message
+    if (action !== 'confirm_booking') {
+      addUserMessage(text);
+    }
 
     if (action === 'start_booking') {
       startServiceBooking();
@@ -273,25 +279,52 @@
         📧 <strong>Email:</strong> <a href="mailto:nhrnhl0507@gmail.com">nhrnhl0507@gmail.com</a><br>
         📍 <strong>Location:</strong> Udaipur, Rajasthan, India
       `);
-    } else if (action && action.startsWith('service_select_')) {
+    } else if (action.startsWith('service_select_')) {
       const selected = action.replace('service_select_', '');
       bookingState.data.service = selected;
-      askNextQuestion();
-    } else if (action && action.startsWith('budget_select_')) {
+      if (bookingState.editingField === 'service') {
+        bookingState.editingField = null;
+        addBotMessage(`✅ Service बदलकर <strong>${escapeHtml(selected)}</strong> कर दी गई है!`);
+        showBookingSummary();
+      } else {
+        askNextQuestion();
+      }
+    } else if (action.startsWith('budget_select_')) {
       const selected = action.replace('budget_select_', '');
       bookingState.data.budget = selected;
-      askNextQuestion();
-    } else if (action && action.startsWith('deadline_select_')) {
+      if (bookingState.editingField === 'budget') {
+        bookingState.editingField = null;
+        addBotMessage(`✅ Budget बदलकर <strong>${escapeHtml(selected)}</strong> कर दिया गया है!`);
+        showBookingSummary();
+      } else {
+        askNextQuestion();
+      }
+    } else if (action.startsWith('deadline_select_')) {
       const selected = action.replace('deadline_select_', '');
       bookingState.data.deadline = selected;
-      askNextQuestion();
+      if (bookingState.editingField === 'deadline') {
+        bookingState.editingField = null;
+        addBotMessage(`✅ Deadline बदलकर <strong>${escapeHtml(selected)}</strong> कर दी गई है!`);
+        showBookingSummary();
+      } else {
+        askNextQuestion();
+      }
     } else if (action === 'no_additional') {
       bookingState.data.additional = 'No additional requirements';
-      askNextQuestion();
+      if (bookingState.editingField === 'additional') {
+        bookingState.editingField = null;
+        addBotMessage(`✅ Additional requirements update कर दी गई हैं!`);
+        showBookingSummary();
+      } else {
+        askNextQuestion();
+      }
     } else if (action === 'confirm_booking') {
       handleConfirmBooking();
     } else if (action === 'edit_booking') {
       handleEditBooking();
+    } else if (action.startsWith('edit_field_')) {
+      const field = action.replace('edit_field_', '');
+      executeEditField(field);
     }
   }
 
@@ -303,7 +336,13 @@
     chatInput.value = '';
     addUserMessage(text);
 
-    // If currently in booking flow
+    // If currently editing a single field
+    if (bookingState.editingField) {
+      processEditAnswer(text);
+      return;
+    }
+
+    // If currently in step-by-step booking flow
     if (bookingState.step !== 'IDLE' && bookingState.step !== 'BOOKING_SUMMARY') {
       processBookingAnswer(text);
       return;
@@ -338,6 +377,7 @@
      ========================================================================== */
   function startServiceBooking() {
     bookingState.step = 'BOOKING_NAME';
+    bookingState.editingField = null;
     bookingState.data = {
       name: '',
       email: '',
@@ -493,6 +533,7 @@
   // Render the exact required Booking Summary
   function showBookingSummary() {
     bookingState.step = 'BOOKING_SUMMARY';
+    bookingState.editingField = null;
     const d = bookingState.data;
 
     const summaryHtml = `
@@ -538,7 +579,7 @@
           <div>${escapeHtml(d.additional)}</div>
         </div>` : ''}
 
-        <div style="margin-top: 12px; font-weight: 700; color: #0A4E8C;">
+        <div style="margin-top: 14px; font-weight: 700; color: #0A4E8C;">
           क्या ये details सही हैं?
         </div>
 
@@ -556,53 +597,191 @@
     addBotMessage(summaryHtml);
   }
 
+  /* ==========================================================================
+     EDIT DETAILS WORKFLOW
+     ========================================================================== */
   function handleEditBooking() {
     addBotMessage(`
-      आप कौन सी detail बदलना चाहते हैं?
+      आप कौन सी detail बदलना चाहते हैं? नीचे दिए गए विकल्प में से चुनें:
       <div class="shiva-options">
-        <button type="button" class="shiva-opt-btn" onclick="window.shivaEditField('name')">Name</button>
-        <button type="button" class="shiva-opt-btn" onclick="window.shivaEditField('email')">Email</button>
-        <button type="button" class="shiva-opt-btn" onclick="window.shivaEditField('phone')">Phone</button>
-        <button type="button" class="shiva-opt-btn" onclick="window.shivaEditField('service')">Service</button>
-        <button type="button" class="shiva-opt-btn" onclick="window.shivaEditField('details')">Details</button>
-        <button type="button" class="shiva-opt-btn" onclick="window.shivaEditField('restart')">↺ Restart From Beginning</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_name">✏️ Name</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_email">✏️ Email</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_phone">✏️ Phone</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_service">✏️ Service</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_project">✏️ Project/Brand</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_details">✏️ Project Details</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_budget">✏️ Budget</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_deadline">✏️ Deadline</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_additional">✏️ Additional</button>
+        <button type="button" class="shiva-opt-btn shiva-opt-orange" data-action="edit_field_restart">🔄 Restart Booking</button>
+        <button type="button" class="shiva-opt-btn" data-action="edit_field_back">↩️ Back to Summary</button>
       </div>
     `);
   }
 
-  window.shivaEditField = function (field) {
+  function executeEditField(field) {
     if (field === 'restart') {
       startServiceBooking();
       return;
     }
+    if (field === 'back') {
+      showBookingSummary();
+      return;
+    }
+
+    bookingState.editingField = field;
+
     if (field === 'name') {
-      bookingState.step = 'BOOKING_NAME';
       addBotMessage(`कृपया अपना नया <strong>Full Name</strong> बताएं:`);
     } else if (field === 'email') {
-      bookingState.step = 'BOOKING_EMAIL';
       addBotMessage(`कृपया अपना नया <strong>Email Address</strong> बताएं:`);
     } else if (field === 'phone') {
-      bookingState.step = 'BOOKING_PHONE';
-      addBotMessage(`कृपया अपना नया <strong>Phone/WhatsApp</strong> बताएं:`);
+      addBotMessage(`कृपया अपना नया <strong>WhatsApp या Phone Number</strong> बताएं:`);
     } else if (field === 'service') {
-      bookingState.step = 'BOOKING_SERVICE';
       addBotMessage(`
-        कृपया अपनी <strong>Service</strong> चुनें:
+        कृपया अपनी नई <strong>Service</strong> चुनें:
         <div class="shiva-options">
-          <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="service_select_AI Video Creation — ₹1,500/video">AI Video Creation (₹1,500)</button>
-          <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="service_select_Website Creation — ₹20,000/website">Website Creation (₹20,000)</button>
-          <button type="button" class="shiva-opt-btn" data-action="service_select_Both">Both</button>
+          <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="service_select_AI Video Creation — ₹1,500/video">🎥 AI Video Creation (₹1,500)</button>
+          <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="service_select_Website Creation — ₹20,000/website">💻 Website Creation (₹20,000)</button>
+          <button type="button" class="shiva-opt-btn" data-action="service_select_Both (AI Video & Website Creation)">✨ Both Services</button>
         </div>
       `);
+    } else if (field === 'project') {
+      addBotMessage(`कृपया अपने <strong>Project या Brand का नाम</strong> बताएं:`);
     } else if (field === 'details') {
-      bookingState.step = 'BOOKING_DETAILS';
-      addBotMessage(`कृपया अपने <strong>Project Details</strong> दोबारा लिखें:`);
+      addBotMessage(`कृपया अपने <strong>Project Details</strong> दोबारा विस्तार से लिखें:`);
+    } else if (field === 'budget') {
+      addBotMessage(`
+        कृपया अपना नया <strong>Expected Budget</strong> चुनें या लिखें:
+        <div class="shiva-options">
+          <button type="button" class="shiva-opt-btn" data-action="budget_select_₹1,500 (AI Video Standard)">₹1,500 (AI Video)</button>
+          <button type="button" class="shiva-opt-btn" data-action="budget_select_₹20,000 (Website Standard)">₹20,000 (Website)</button>
+          <button type="button" class="shiva-opt-btn" data-action="budget_select_Flexible / To be discussed">Flexible / To be discussed</button>
+        </div>
+      `);
+    } else if (field === 'deadline') {
+      addBotMessage(`
+        कृपया अपनी <strong>Timeline या Deadline</strong> चुनें या लिखें:
+        <div class="shiva-options">
+          <button type="button" class="shiva-opt-btn" data-action="deadline_select_Urgent (1-3 Days)">⚡ Urgent (1-3 Days)</button>
+          <button type="button" class="shiva-opt-btn" data-action="deadline_select_1 Week">📅 1 Week</button>
+          <button type="button" class="shiva-opt-btn" data-action="deadline_select_2-4 Weeks">🗓️ 2-4 Weeks</button>
+          <button type="button" class="shiva-opt-btn" data-action="deadline_select_Flexible">🤝 Flexible</button>
+        </div>
+      `);
+    } else if (field === 'additional') {
+      addBotMessage(`
+        कृपया अपनी <strong>Additional Requirements</strong> लिखें:
+        <div class="shiva-options">
+          <button type="button" class="shiva-opt-btn" data-action="no_additional">No additional requirements</button>
+        </div>
+      `);
     }
-  };
+  }
+
+  function processEditAnswer(text) {
+    const field = bookingState.editingField;
+
+    if (field === 'name') {
+      if (text.length < 2) {
+        addBotMessage(`⚠️ कृपया एक मान्य नाम (कम से कम 2 अक्षर) लिखें:`);
+        return;
+      }
+      bookingState.data.name = text;
+    } else if (field === 'email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(text)) {
+        addBotMessage(`⚠️ कृपया एक मान्य Email Address दर्ज करें:`);
+        return;
+      }
+      bookingState.data.email = text;
+    } else if (field === 'phone') {
+      const cleanPhone = text.replace(/\D/g, '');
+      if (cleanPhone.length < 10) {
+        addBotMessage(`⚠️ कृपया एक मान्य 10-अंकों का Phone नंबर दर्ज करें:`);
+        return;
+      }
+      bookingState.data.phone = text;
+    } else if (field === 'project') {
+      bookingState.data.project = text;
+    } else if (field === 'details') {
+      if (text.length < 5) {
+        addBotMessage(`⚠️ कृपया project के बारे में थोड़ा विस्तार से बताएं:`);
+        return;
+      }
+      bookingState.data.details = text;
+    } else if (field === 'budget') {
+      bookingState.data.budget = text;
+    } else if (field === 'deadline') {
+      bookingState.data.deadline = text;
+    } else if (field === 'additional') {
+      bookingState.data.additional = text;
+    }
+
+    bookingState.editingField = null;
+    addBotMessage(`✅ आपकी details update कर दी गई हैं!`);
+    showBookingSummary();
+  }
 
   /* ==========================================================================
      AUTOMATIC EMAIL NOTIFICATION & CONFIRMATION
      ========================================================================== */
+  function submitNativeForm(d, emailSubject, emailBody, timestamp) {
+    try {
+      let iframe = document.getElementById('shiva_hidden_iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.name = 'shiva_hidden_iframe';
+        iframe.id = 'shiva_hidden_iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+
+      let form = document.getElementById('shiva_native_booking_form');
+      if (form) form.remove();
+
+      form = document.createElement('form');
+      form.id = 'shiva_native_booking_form';
+      form.action = `https://formsubmit.co/${RECIPIENT_EMAIL}`;
+      form.method = 'POST';
+      form.target = 'shiva_hidden_iframe';
+      form.style.display = 'none';
+
+      const fields = {
+        '_subject': emailSubject,
+        '_captcha': 'false',
+        '_template': 'table',
+        'Booking ID': d.bookingId,
+        'Customer Name': d.name,
+        'Customer Email': d.email,
+        'Phone / WhatsApp': d.phone,
+        'Selected Service': d.service,
+        'Project / Brand': d.project || 'Not specified',
+        'Budget': d.budget || 'To be discussed',
+        'Deadline': d.deadline || 'Flexible',
+        'Project Details': d.details,
+        'Additional Requirements': d.additional || 'None',
+        'Booking Date & Time': timestamp,
+        'Full Booking Dossier': emailBody
+      };
+
+      for (const [key, val] of Object.entries(fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = val;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+      return true;
+    } catch (e) {
+      console.warn('Native form submission error:', e);
+      return false;
+    }
+  }
+
   async function handleConfirmBooking() {
     if (bookingState.isSubmitting) return;
 
@@ -664,6 +843,10 @@ ${timestamp}`;
     showTyping();
 
     let emailSuccessful = false;
+    let activationRequired = false;
+
+    // Always trigger native form submission in parallel
+    submitNativeForm(d, emailSubject, emailBody, timestamp);
 
     // 1. First attempt: Serverless / Node.js backend endpoint
     try {
@@ -695,10 +878,10 @@ ${timestamp}`;
         }
       }
     } catch (backendErr) {
-      // Backend not running (e.g. static GitHub Pages) - fallback to direct FormSubmit AJAX
+      // Backend not available (static host)
     }
 
-    // 2. Fallback attempt: Direct FormSubmit AJAX
+    // 2. Second attempt: Direct FormSubmit AJAX
     if (!emailSuccessful) {
       try {
         const formSubmitRes = await fetch(FORMSUBMIT_ENDPOINT, {
@@ -709,6 +892,7 @@ ${timestamp}`;
           },
           body: JSON.stringify({
             _subject: emailSubject,
+            _captcha: 'false',
             booking_id: d.bookingId,
             customer_name: d.name,
             customer_email: d.email,
@@ -728,10 +912,12 @@ ${timestamp}`;
           const resData = await formSubmitRes.json();
           if (resData.success === 'true' || resData.success === true) {
             emailSuccessful = true;
+          } else if (resData.message && resData.message.toLowerCase().includes('activation')) {
+            activationRequired = true;
           }
         }
       } catch (fsErr) {
-        // FormSubmit error
+        console.warn('FormSubmit AJAX error:', fsErr);
       }
     }
 
@@ -763,9 +949,15 @@ ${timestamp}`;
       addBotMessage(successHtml);
     } else {
       // Failure state: Do NOT falsely claim email was sent
+      let extraNote = '';
+      if (activationRequired) {
+        extraNote = `<br><br><small style="color:#64748B;">ℹ️ Notice for Nihar: FormSubmit has sent an 'Activate Form' email to <strong>${RECIPIENT_EMAIL}</strong>. Click 'Activate Form' in your inbox once to enable instant automated delivery.</small>`;
+      }
+
       const errorHtml = `
         <div class="shiva-error-box">
           ⚠️ आपकी booking अभी submit नहीं हो पाई। कृपया कुछ समय बाद दोबारा कोशिश करें या सीधे Nihar से संपर्क करें।
+          ${extraNote}
           <div class="shiva-contact-links">
             <a href="tel:+917723913729" class="shiva-contact-link shiva-contact-phone">
               📞 Call Nihar
