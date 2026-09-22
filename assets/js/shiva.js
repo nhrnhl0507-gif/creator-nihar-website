@@ -1276,14 +1276,7 @@
       'recipe', 'flight', 'train', 'hotel', 'elon musk', 'bill gates', 'mark zuckerberg'
     ];
     if (outOfScopeMarkers.some(m => words.includes(m) || cleaned.includes(m))) {
-      let fallbackSpeech = '';
-      if (lang === 'hi') {
-        fallbackSpeech = "इस जानकारी के बारे में मेरे पास सत्यापित जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं।";
-      } else if (lang === 'en') {
-        fallbackSpeech = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
-      } else {
-        fallbackSpeech = "Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain.";
-      }
+      const fallbackSpeech = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
       return {
         type: 'FALLBACK',
         spokenText: fallbackSpeech,
@@ -1332,14 +1325,7 @@
     }
 
     // 10. Strict Truthful Fallback for unknown information
-    let fallbackSpeech = '';
-    if (lang === 'hi') {
-      fallbackSpeech = "इस जानकारी के बारे में मेरे पास सत्यापित जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं।";
-    } else if (lang === 'en') {
-      fallbackSpeech = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
-    } else {
-      fallbackSpeech = "Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain.";
-    }
+    const fallbackSpeech = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
 
     return {
       type: 'FALLBACK',
