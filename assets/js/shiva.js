@@ -833,6 +833,22 @@
     }
   ];
 
+  /* ==========================================================================
+     CONVERSATIONAL CONTEXT & INTELLIGENCE ENGINE 🧠
+     ========================================================================== */
+  const conversationContext = {
+    lastEntity: null,       // 'nihar' | 'brand' | 'website' | 'website_service' | 'video_service'
+    lastTopic: null,
+    lastQuestion: '',
+    lastLanguage: 'hinglish'
+  };
+
+  const INTERRUPTION_PHRASES = [
+    'रुक जाओ', 'रुको', 'बस', 'चुप हो जाओ', 'चुप रहो', 'चुप', 'बस करो', 'सुनो',
+    'ruk jao', 'ruko', 'bas', 'chup', 'chup ho jao', 'bas karo', 'suno', 'sunno',
+    'stop', 'wait', 'pause', 'hold on', 'quiet', 'shut up'
+  ];
+
   function detectLanguage(text) {
     if (/[\u0900-\u097F]/.test(text)) {
       return 'hi';
@@ -841,7 +857,7 @@
     const hinglishMarkers = [
       'kya', 'hai', 'kaise', 'kitna', 'kitne', 'kaha', 'kahan', 'kon', 'kaun', 'batao',
       'btao', 'karo', 'hoga', 'karna', 'chahiye', 'mera', 'meri', 'mujhe', 'aap', 'tum',
-      'paisa', 'paise', 'kharcha', 'rupaye', 'bhi', 'se', 'ho', 'h'
+      'paisa', 'paise', 'kharcha', 'rupaye', 'bhi', 'se', 'ho', 'h', 'banwani', 'banani'
     ];
     const words = lower.replace(/[?,.!;:'"()]/g, ' ').split(/\s+/);
     for (const w of words) {
@@ -852,99 +868,526 @@
     return 'en';
   }
 
-  function answerUserQuery(text) {
+  function isExplicitBookingIntent(text) {
     const lower = text.toLowerCase();
 
-    // 1. Check for Booking Intent -> Triggers Existing 9-Step Booking Flow!
-    const bookingTriggers = [
-      'book', 'booking', 'order', 'खरीदना', 'बुक', 'ऑर्डर',
-      'service leni hai', 'kharidna', 'purchase', 'hire', 'start service', 'start booking',
-      'kaam karwana hai', 'service book'
+    // Informational inquiries must NEVER trigger booking
+    const informationalPhrases = [
+      'kya karti hai', 'kya karta hai', 'kaisi hai', 'kaisa hai',
+      'kya hai', 'what is', 'what does', 'how does', 'tell me about',
+      'kitne ki', 'kitna kharcha', 'kitne ka', 'price kya', 'cost kya',
+      'kaise ho', 'kya kar rahe'
     ];
-    if (bookingTriggers.some(trigger => lower.includes(trigger))) {
-      startServiceBooking();
-      return;
+    if (informationalPhrases.some(p => lower.includes(p)) &&
+        !lower.includes('banwani') && !lower.includes('banani') && !lower.includes('book karni')) {
+      return false;
     }
 
-    const lang = detectLanguage(text);
-    const cleanedText = lower.replace(/[?,.!;:'"()]/g, ' ');
-    const queryWords = cleanedText.split(/\s+/).filter(w => w.length > 1);
+    const bookingPatterns = [
+      'mujhe website banwani', 'website banwani hai', 'website banani hai', 'website banwana hai', 'website banaye',
+      'mujhe video banwani', 'video banwani hai', 'video banani hai', 'video banwana hai', 'ai video banwana',
+      'service book karni', 'service book karna', 'booking karni hai', 'booking karna hai', 'service leni hai',
+      'website order karni', 'video order karni', 'kaam karwana hai', 'project shuru karna',
+      'i want to book', 'i want to order', 'i want a website', 'i want a video', 'i want to hire',
+      'book a service', 'book website', 'book video', 'book now'
+    ];
+    return bookingPatterns.some(pat => lower.includes(pat));
+  }
 
+  function processConversationalQuery(rawText) {
+    const text = rawText.trim();
+    const lower = text.toLowerCase();
+    const lang = detectLanguage(text);
+    conversationContext.lastLanguage = lang;
+    conversationContext.lastQuestion = text;
+
+    const cleaned = lower.replace(/[?,.!;:'"()]/g, ' ').trim();
+    const words = cleaned.split(/\s+/).filter(w => w.length > 0);
+
+    // 1. Explicit Service Booking Intent -> Launch Booking Flow
+    if (isExplicitBookingIntent(text)) {
+      let confirmSpeech = '';
+      if (lang === 'en') {
+        confirmSpeech = "Great! Let's start your service booking.";
+      } else {
+        confirmSpeech = "बहुत बढ़िया! आइए आपकी बुकिंग शुरू करते हैं।";
+      }
+      return {
+        type: 'BOOKING',
+        spokenText: confirmSpeech,
+        displayText: confirmSpeech,
+        lang: lang
+      };
+    }
+
+    // 2. Interruption Keywords (Standalone)
+    if (INTERRUPTION_PHRASES.some(phrase => cleaned === phrase || (cleaned.startsWith(phrase) && words.length <= 3))) {
+      return {
+        type: 'INTERRUPT',
+        spokenText: '',
+        displayText: '⏸️ रुका हुआ (Listening...)',
+        lang: lang
+      };
+    }
+
+    // 3. Normal Human Casual Conversation (Small Talk)
+    // 3A. Greeting
+    const greetingWords = ['hello', 'hi', 'hey', 'namaste', 'namaskar', 'नमस्ते', 'हेलो', 'नमस्कार', 'हाय'];
+    const isOnlyGreeting = words.length <= 3 && words.some(w => greetingWords.includes(w));
+    if (isOnlyGreeting && !words.includes('kaise') && !words.includes('how')) {
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "नमस्ते! 🙏 मैं Shiva हूँ, Creator Nihar का AI Assistant। मैं आपकी क्या मदद कर सकता हूँ?";
+      } else if (lang === 'en') {
+        speech = "Hello! 🙏 I am Shiva, Creator Nihar's AI Assistant. How can I assist you today?";
+      } else {
+        speech = "Namaste! 🙏 Main Shiva hoon, Creator Nihar ka AI Assistant. Main aapki kya madad kar sakta hoon?";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '💰 Pricing Details', action: 'pricing_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 3B. Wellbeing: "Kaise ho?", "How are you?"
+    if (cleaned.includes('kaise ho') || cleaned.includes('how are you') || cleaned.includes('kya haal hai') || cleaned.includes('aap kaise hain') || cleaned.includes('कैसे हो')) {
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "मैं बिल्कुल तैयार हूँ आपकी मदद करने के लिए! 😊 आप क्या पूछना चाहेंगे?";
+      } else if (lang === 'en') {
+        speech = "I am doing great and ready to help you! 😊 What would you like to know?";
+      } else {
+        speech = "Main bilkul ready hoon aapki help karne ke liye! 😊 Aap kya poochna chahenge?";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '💰 Pricing Details', action: 'pricing_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 3C. Gratitude: "Thank you", "Dhanyawad", "Shukriya"
+    if (cleaned.includes('thank you') || cleaned.includes('thanks') || cleaned.includes('dhanyawad') || cleaned.includes('shukriya') || cleaned.includes('धन्यवाद') || cleaned.includes('शुक्रिया')) {
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "आपका स्वागत है! 😊 अगर आपको कोई और जानकारी चाहिए तो अवश्य बताएं।";
+      } else if (lang === 'en') {
+        speech = "You're welcome! 😊 Let me know if you need any further information.";
+      } else {
+        speech = "You're welcome! 😊 Agar aapko aur koi jaankari chahiye toh zaroor bataiye.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true }
+        ],
+        lang: lang
+      };
+    }
+
+    // 3D. Compliment: "Bahut achha", "Very good", "Badhiya", "Awesome", "Great"
+    if (cleaned.includes('bahut achha') || cleaned.includes('bahut badiya') || cleaned.includes('very good') || cleaned.includes('shandar') || cleaned.includes('बहुत अच्छा') || cleaned.includes('बढ़िया')) {
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "धन्यवाद! 😊 मैं आपकी और क्या मदद कर सकता हूँ?";
+      } else if (lang === 'en') {
+        speech = "Thank you! 😊 How else can I assist you?";
+      } else {
+        speech = "Shukriya! 😊 Main aapki aur kya help kar sakta hoon?";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true }
+        ],
+        lang: lang
+      };
+    }
+
+    // 3E. Prompt to speak: "Ek baat batao", "Can I ask something", "Sunno"
+    if (cleaned.includes('ek baat batao') || cleaned.includes('ek sawal') || cleaned.includes('can i ask') || cleaned.includes('एक बात बताओ')) {
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "बिल्कुल, पूछिए। मैं सुन रहा हूँ।";
+      } else if (lang === 'en') {
+        speech = "Sure, please ask. I am listening.";
+      } else {
+        speech = "Bilkul, poochhiye. Main sun raha hoon.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: null,
+        lang: lang
+      };
+    }
+
+    // 3F. Activity: "Kya kar rahe ho?", "What are you doing?"
+    if (cleaned.includes('kya kar rahe') || cleaned.includes('what are you doing') || cleaned.includes('क्या कर रहे हो')) {
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "मैं आपसे बात कर रहा हूँ और Creator Nihar के बारे में जानकारी देने या आपकी मदद करने के लिए तैयार हूँ।";
+      } else if (lang === 'en') {
+        speech = "I am speaking with you and ready to assist you or provide information about Creator Nihar.";
+      } else {
+        speech = "Main aapse baat kar raha hoon aur Creator Nihar ke baare mein information dene ya aapki help karne ke liye ready hoon.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true }
+        ],
+        lang: lang
+      };
+    }
+
+    // 4. Context Follow-up Questions
+    // 4A. "Nihar ki company ka naam kya hai?" / "Uski company ka naam kya hai?"
+    if (cleaned.includes('company ka naam') || cleaned.includes('uski company') || cleaned.includes('nihar ki company') || 
+        ((conversationContext.lastEntity === 'nihar') && (cleaned.includes('company') || cleaned.includes('brand')))) {
+      conversationContext.lastEntity = 'brand';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "उनकी company/brand का नाम Creator Nihar है।";
+      } else if (lang === 'en') {
+        speech = "His company and brand name is Creator Nihar.";
+      } else {
+        speech = "Unki company/brand ka naam Creator Nihar hai.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '💰 Pricing Details', action: 'pricing_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 4B. "Isme website bhi banti hai?" / "Isme kya banta hai?" (following brand context)
+    if ((conversationContext.lastEntity === 'brand' || cleaned.includes('isme website')) && 
+        (cleaned.includes('website bhi banti') || cleaned.includes('website banti hai') || cleaned.includes('isme website'))) {
+      conversationContext.lastEntity = 'website_service';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "जी हाँ, Creator Nihar पर professional website creation service available है। Website creation की listed price ₹20,000 है।";
+      } else if (lang === 'en') {
+        speech = "Yes, professional website creation service is available at Creator Nihar. The listed price for website creation is ₹20,000.";
+      } else {
+        speech = "Ji haan, Creator Nihar par professional website creation service available hai. Website creation ki listed price ₹20,000 hai.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '💻 Website Details', action: 'web_creation_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 5. Entity A: Nihar Amrawat (Founder / Owner)
+    const niharPatterns = [
+      'nihar amrawat kaun hai', 'nihar kaun hai', 'who is nihar amrawat', 'who is nihar', 'about nihar',
+      'nihar kon hai', 'nihar amrawat kon hai', 'founder kaun hai', 'founder kon hai', 'owner kaun hai',
+      'owner kon hai', 'malik kaun hai', 'who is the founder', 'who is the owner', 'who owns creator nihar',
+      'निहार अमरावत कौन है', 'निहार कौन है', 'फाउंडर कौन है', 'मालिक कौन है'
+    ];
+    if (niharPatterns.some(p => cleaned.includes(p)) || 
+        ((cleaned.includes('nihar') || cleaned.includes('founder') || cleaned.includes('owner')) && 
+         (cleaned.includes('kaun') || cleaned.includes('kon') || cleaned.includes('who') || cleaned.includes('kiski') || cleaned.includes('about')) &&
+         !cleaned.includes('company') && !cleaned.includes('brand') && !cleaned.includes('website'))) {
+      conversationContext.lastEntity = 'nihar';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "निहार अमरावत Creator Nihar के Founder & Owner हैं। वह प्रोफेशनल AI Video Creator और AI Website Developer हैं, Certified Ethical Hacker हैं, और BCA second year के स्टूडेंट हैं। वह उदयपुर, राजस्थान, भारत से हैं।";
+      } else if (lang === 'en') {
+        speech = "Nihar Amrawat is the Founder & Owner of Creator Nihar. He is a professional AI Video Creator and AI Website Developer, a Certified Ethical Hacker, and a 2nd-year BCA student from Udaipur, Rajasthan, India.";
+      } else {
+        speech = "Nihar Amrawat Creator Nihar ke Founder & Owner hain. Woh professional AI Video Creator aur AI Website Developer hain, Certified Ethical Hacker hain, aur BCA second year ke student hain. Woh Udaipur, Rajasthan, India se hain.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📞 Contact Nihar', action: 'contact_info' },
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true }
+        ],
+        lang: lang
+      };
+    }
+
+    // 6. Entity B: Creator Nihar (Brand / Business / Platform)
+    const brandPatterns = [
+      'creator nihar kya hai', 'what is creator nihar', 'creator nihar ke baare mein batao',
+      'tell me about creator nihar', 'about creator nihar', 'creator nihar brand',
+      'क्रिएटर निहार क्या है', 'क्रिएटर निहार के बारे में बताओ'
+    ];
+    if (brandPatterns.some(p => cleaned.includes(p)) || 
+        (cleaned.includes('creator nihar') && (cleaned.includes('kya hai') || cleaned.includes('what is')) && !cleaned.includes('website'))) {
+      conversationContext.lastEntity = 'brand';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "Creator Nihar एक AI-focused creative technology brand है जो AI Video Creation और AI Website Development services provide करता है। इसका tagline है 'Creative Minds. Digital Excellence.'";
+      } else if (lang === 'en') {
+        speech = "Creator Nihar is an AI-focused creative technology brand providing AI Video Creation and AI Website Development services. Its tagline is 'Creative Minds. Digital Excellence.'";
+      } else {
+        speech = "Creator Nihar ek AI-focused creative technology brand hai jo AI Video Creation aur AI Website Development services provide karta hai. Iska tagline hai 'Creative Minds. Digital Excellence.'";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '💰 Pricing Details', action: 'pricing_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 7. Entity C: Creator Nihar Website (The Website itself)
+    // 7A. Functionality: "Ye website kya karti hai?"
+    if (cleaned.includes('ye website kya karti') || cleaned.includes('website kya karti') || cleaned.includes('what does this website do') || 
+        cleaned.includes('is website par kya hota') || cleaned.includes('वेबसाइट क्या करती है') || cleaned.includes('यह वेबसाइट क्या करती है')) {
+      conversationContext.lastEntity = 'website';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "Creator Nihar एक digital creative technology platform है जहाँ AI Video Creation और AI Website Development services available हैं। यहाँ आप AI-powered videos और professional websites बनवा सकते हैं।";
+      } else if (lang === 'en') {
+        speech = "Creator Nihar is a digital creative technology platform where AI Video Creation and AI Website Development services are available. Here you can get AI-powered videos and professional websites built.";
+      } else {
+        speech = "Creator Nihar ek digital creative technology platform hai jahan AI Video Creation aur AI Website Development services available hain. Yahan aap AI-powered videos aur professional websites banwa sakte hain.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '🎥 AI Video (₹1,500)', action: 'ai_video_info' },
+          { text: '💻 Website (₹20,000)', action: 'web_creation_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 7B. Nature / Description: "Creator Nihar website kaisi website hai?"
+    if (cleaned.includes('kaisi website hai') || cleaned.includes('website kaisi hai') || cleaned.includes('what kind of website') || 
+        cleaned.includes('कैसी वेबसाइट है') || cleaned.includes('वेबसाइट कैसी है')) {
+      conversationContext.lastEntity = 'website';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "Creator Nihar एक modern AI-focused creative technology website है। यहाँ आपको AI Video Creation और AI Website Development services मिलती हैं, pricing information, service booking, free consultation और Creator Nihar के बारे में information मिलती है।";
+      } else if (lang === 'en') {
+        speech = "Creator Nihar is a modern AI-focused creative technology website. Here you will find AI Video Creation and AI Website Development services, pricing information, service booking, free consultation, and information about Creator Nihar.";
+      } else {
+        speech = "Creator Nihar ek modern AI-focused creative technology website hai. Yahan aapko AI Video Creation aur AI Website Development services milti hain, pricing information, service booking, free consultation aur Creator Nihar ke baare mein information milti hai.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '💰 Pricing Details', action: 'pricing_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 8. Specific Service Pricing Inquiries (Without starting booking)
+    // 8A. Website Pricing: "Website kitne ki hai?"
+    if (cleaned.includes('website kitne ki') || cleaned.includes('website kitne mein') || cleaned.includes('website price') || 
+        cleaned.includes('website cost') || cleaned.includes('website creation price') || cleaned.includes('वेबसाइट कितने की है') || cleaned.includes('वेबसाइट प्राइस')) {
+      conversationContext.lastEntity = 'website_service';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "Creator Nihar पर website creation service ₹20,000 से available है। Highly customized requirements के according final pricing vary कर सकती है।";
+      } else if (lang === 'en') {
+        speech = "Website creation service at Creator Nihar is available starting from ₹20,000. Final pricing may vary according to highly customized requirements.";
+      } else {
+        speech = "Creator Nihar par website creation service ₹20,000 se available hai. Highly customized requirements ke according final pricing vary kar sakti hai.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '💻 Website Details', action: 'web_creation_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 8B. Video Pricing: "AI video kitne ka hai?" / "Video kitne ka banega?"
+    if (cleaned.includes('video kitne ka') || cleaned.includes('video kitne mein') || cleaned.includes('ai video kitne') || 
+        cleaned.includes('video price') || cleaned.includes('video cost') || cleaned.includes('वीडियो कितने का बनेगा') || cleaned.includes('AI वीडियो कितने का है')) {
+      conversationContext.lastEntity = 'video_service';
+      let speech = '';
+      if (lang === 'hi') {
+        speech = "AI Video Creation service ₹1,500 per video है।";
+      } else if (lang === 'en') {
+        speech = "AI Video Creation service is ₹1,500 per video.";
+      } else {
+        speech = "AI Video Creation service ₹1,500 per video hai.";
+      }
+      return {
+        type: 'ANSWER',
+        spokenText: speech,
+        displayText: speech,
+        buttons: [
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+          { text: '🎥 AI Video Details', action: 'ai_video_info' }
+        ],
+        lang: lang
+      };
+    }
+
+    // 8C. Out-of-scope factual queries filter (e.g. stock price, apple, weather, general world facts)
+    const outOfScopeMarkers = [
+      'stock', 'stocks', 'share market', 'apple', 'tesla', 'bitcoin', 'crypto',
+      'weather', 'cricket', 'football', 'actor', 'actress', 'bollywood', 'hollywood',
+      'prime minister', 'president', 'petrol', 'diesel', 'gold', 'silver', 'iphone',
+      'recipe', 'flight', 'train', 'hotel', 'elon musk', 'bill gates', 'mark zuckerberg'
+    ];
+    if (outOfScopeMarkers.some(m => words.includes(m) || cleaned.includes(m))) {
+      let fallbackSpeech = '';
+      if (lang === 'hi') {
+        fallbackSpeech = "इस जानकारी के बारे में मेरे पास सत्यापित जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं।";
+      } else if (lang === 'en') {
+        fallbackSpeech = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
+      } else {
+        fallbackSpeech = "Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain.";
+      }
+      return {
+        type: 'FALLBACK',
+        spokenText: fallbackSpeech,
+        displayText: fallbackSpeech,
+        buttons: [
+          { text: '📞 Contact Nihar', action: 'contact_info' },
+          { text: '📋 Service Book करें', action: 'start_booking', primary: true }
+        ],
+        lang: lang
+      };
+    }
+
+    // 9. Match with CREATOR_NIHAR_KB for other topics (Workflow, Consultation, Contact, etc.)
+    const queryWords = cleaned.split(/\s+/).filter(w => w.length > 1);
     let bestTopic = null;
     let highestScore = 0;
 
     for (const topic of CREATOR_NIHAR_KB) {
       let score = 0;
-
-      // Check phrase matches (+12)
       for (const phrase of topic.phrases) {
-        if (cleanedText.includes(phrase)) {
-          score += 12;
-        }
+        if (cleaned.includes(phrase)) score += 12;
       }
-
-      // Check keyword matches (+3)
       for (const kw of topic.keywords) {
-        if (cleanedText.includes(kw)) {
-          score += 3;
-        }
+        if (cleaned.includes(kw)) score += 3;
       }
-
-      // Check query words against keywords (+1)
       for (const qw of queryWords) {
-        if (topic.keywords.some(kw => kw === qw)) {
-          score += 1;
-        }
+        if (topic.keywords.some(kw => kw === qw)) score += 1;
       }
-
       if (score > highestScore) {
         highestScore = score;
         bestTopic = topic;
       }
     }
 
-    // High confidence match found
     if (bestTopic && highestScore >= 3) {
-      const responseHtml = bestTopic.answers[lang] || bestTopic.answers.en;
-      let buttonsHtml = '';
-      if (bestTopic.buttons && bestTopic.buttons.length > 0) {
-        buttonsHtml = '<div class="shiva-options">';
-        for (const btn of bestTopic.buttons) {
-          const btnClass = btn.primary ? 'shiva-opt-btn shiva-opt-primary' : 'shiva-opt-btn';
-          buttonsHtml += `<button type="button" class="${btnClass}" data-action="${btn.action}">${btn.text}</button>`;
-        }
-        buttonsHtml += '</div>';
-      }
-      addBotMessage(`${responseHtml}${buttonsHtml}`);
+      conversationContext.lastTopic = bestTopic.id;
+      const rawHtml = bestTopic.answers[lang] || bestTopic.answers.en;
+      const spokenClean = cleanTextForSpeech(rawHtml);
+      return {
+        type: 'ANSWER',
+        spokenText: spokenClean,
+        displayText: rawHtml,
+        buttons: bestTopic.buttons || null,
+        lang: lang
+      };
+    }
+
+    // 10. Strict Truthful Fallback for unknown information
+    let fallbackSpeech = '';
+    if (lang === 'hi') {
+      fallbackSpeech = "इस जानकारी के बारे में मेरे पास सत्यापित जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं।";
+    } else if (lang === 'en') {
+      fallbackSpeech = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
+    } else {
+      fallbackSpeech = "Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain.";
+    }
+
+    return {
+      type: 'FALLBACK',
+      spokenText: fallbackSpeech,
+      displayText: fallbackSpeech,
+      buttons: [
+        { text: '📞 Contact Nihar', action: 'contact_info' },
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true }
+      ],
+      lang: lang
+    };
+  }
+
+  function answerUserQuery(text) {
+    const res = processConversationalQuery(text);
+
+    if (res.type === 'BOOKING') {
+      startServiceBooking();
       return;
     }
 
-    // Truthfulness Rule: If not in verified knowledge base, admit truthfully
-    let fallbackText = '';
-    if (lang === 'hi') {
-      fallbackText = `इस जानकारी के बारे में मेरे पास सत्यापित (verified) जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं:`;
-    } else if (lang === 'hinglish') {
-      fallbackText = `Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain:`;
-    } else {
-      fallbackText = `I do not have verified information regarding this topic in my official knowledge base. You can directly contact Nihar for more details:`;
+    let buttonsHtml = '';
+    if (res.buttons && res.buttons.length > 0) {
+      buttonsHtml = '<div class="shiva-options">';
+      for (const btn of res.buttons) {
+        const btnClass = btn.primary ? 'shiva-opt-btn shiva-opt-primary' : 'shiva-opt-btn';
+        buttonsHtml += `<button type="button" class="${btnClass}" data-action="${btn.action}">${btn.text}</button>`;
+      }
+      buttonsHtml += '</div>';
     }
 
-    const fallbackHtml = `
-      ${fallbackText}
-      <div class="shiva-contact-links">
-        <a href="tel:+917723913729" class="shiva-contact-link shiva-contact-phone">
-          📞 Call Nihar
-        </a>
-        <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer" class="shiva-contact-link shiva-contact-wa">
-          💬 WhatsApp Nihar
-        </a>
-      </div>
-      <div class="shiva-options">
-        <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="start_booking">📋 Service Book करें</button>
-        <button type="button" class="shiva-opt-btn" data-action="pricing_info">💰 Pricing Details</button>
-      </div>
-    `;
-    addBotMessage(fallbackHtml);
+    if (res.type === 'FALLBACK') {
+      const fallbackHtml = `
+        ${escapeHtml(res.displayText)}
+        <div class="shiva-contact-links">
+          <a href="tel:+917723913729" class="shiva-contact-link shiva-contact-phone">
+            📞 Call Nihar
+          </a>
+          <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer" class="shiva-contact-link shiva-contact-wa">
+            💬 WhatsApp Nihar
+          </a>
+        </div>
+        ${buttonsHtml}
+      `;
+      addBotMessage(fallbackHtml);
+    } else {
+      addBotMessage(`${res.displayText}${buttonsHtml}`);
+    }
   }
 
   // Handle Form Text Submits
@@ -1716,17 +2159,55 @@ Booking Date & Time: ${timestamp}
             }
           }
 
+          const currentTranscript = (finalTranscript || interimTranscript).trim().toLowerCase();
+          if (!currentTranscript) return;
+
+          // 1. Real-time interruption check when Shiva is speaking
+          // PRIORITY: USER SPEECH > SHIVA SPEECH
+          if (isSpeaking) {
+            const cleanSpeakingText = (currentSpeakingText || '').toLowerCase().replace(/[?,.!;:'"()]/g, ' ');
+            const isEcho = cleanSpeakingText.includes(currentTranscript) && currentTranscript.length > 3;
+            const isInterruptionWord = INTERRUPTION_PHRASES.some(phrase => currentTranscript.includes(phrase));
+
+            if (isInterruptionWord || !isEcho) {
+              // Immediately stop Shiva's speech playback
+              window.speechSynthesis.cancel();
+              isSpeaking = false;
+              currentSpeakingText = '';
+
+              // If it's an interruption keyword (e.g. "रुक जाओ", "रुको", "stop", "wait")
+              if (isInterruptionWord && currentTranscript.split(/\s+/).length <= 3) {
+                setVoiceState('listening');
+                if (voiceSubUser) voiceSubUser.textContent = `“${currentTranscript}”`;
+                if (voiceSubBot) voiceSubBot.textContent = '⏸️ रुका हुआ (Listening...)';
+                return;
+              }
+
+              // If user asked a new question directly while Shiva was speaking
+              if (finalTranscript) {
+                if (voiceSubUser) voiceSubUser.textContent = `“${finalTranscript}”`;
+                setVoiceState('processing');
+                handleVoiceUserInput(finalTranscript.trim());
+                return;
+              } else {
+                setVoiceState('listening');
+                if (voiceSubUser) voiceSubUser.textContent = `“${interimTranscript}”`;
+                return;
+              }
+            } else {
+              // Echo of Shiva's own speech - ignore
+              return;
+            }
+          }
+
+          // 2. Normal speech capture when Shiva is not speaking
           if (interimTranscript) {
-            voiceSubUser.textContent = `“${interimTranscript}”`;
+            if (voiceSubUser) voiceSubUser.textContent = `“${interimTranscript}”`;
           }
 
           if (finalTranscript) {
-            voiceSubUser.textContent = `“${finalTranscript}”`;
+            if (voiceSubUser) voiceSubUser.textContent = `“${finalTranscript}”`;
             setVoiceState('processing');
-            try {
-              recognition.stop();
-            } catch (e) {}
-            isListening = false;
             handleVoiceUserInput(finalTranscript.trim());
           }
         };
@@ -1803,6 +2284,7 @@ Booking Date & Time: ${timestamp}
     voiceSessionActive = false;
     isListening = false;
     isSpeaking = false;
+    currentSpeakingText = '';
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
@@ -1873,17 +2355,7 @@ Booking Date & Time: ${timestamp}
     return text;
   }
 
-  function isVoiceBookingIntent(text) {
-    const lower = text.toLowerCase();
-    const bookingKeywords = [
-      'service book', 'book service', 'booking', 'book karni', 'book karna',
-      'website banwani', 'website banani', 'website chahiye', 'website bana', 'website order',
-      'video banwani', 'video banani', 'video chahiye', 'video bana', 'video order',
-      'book a service', 'book website', 'book video', 'hire', 'kaam karwana',
-      'mujhe website', 'mujhe video', 'service leni'
-    ];
-    return bookingKeywords.some(kw => lower.includes(kw));
-  }
+  let currentSpeakingText = '';
 
   function speakText(text, lang, onEndCallback) {
     if (!('speechSynthesis' in window)) {
@@ -1892,6 +2364,7 @@ Booking Date & Time: ${timestamp}
     }
 
     window.speechSynthesis.cancel();
+    currentSpeakingText = text;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = (lang === 'en') ? 'en-IN' : 'hi-IN';
@@ -1918,6 +2391,7 @@ Booking Date & Time: ${timestamp}
 
     utterance.onend = () => {
       isSpeaking = false;
+      currentSpeakingText = '';
       if (onEndCallback) {
         onEndCallback();
       }
@@ -1926,12 +2400,20 @@ Booking Date & Time: ${timestamp}
     utterance.onerror = (e) => {
       console.warn('SpeechSynthesis error:', e);
       isSpeaking = false;
+      currentSpeakingText = '';
       if (onEndCallback) {
         onEndCallback();
       }
     };
 
     window.speechSynthesis.speak(utterance);
+
+    // Keep recognition active during speech to capture real-time interruptions!
+    if (recognition && !isListening && voiceSessionActive && !isVoiceMuted) {
+      try {
+        recognition.start();
+      } catch (e) {}
+    }
   }
 
   function handleVoiceUserInput(userText) {
@@ -1940,11 +2422,12 @@ Booking Date & Time: ${timestamp}
       return;
     }
 
+    const res = processConversationalQuery(userText);
+
     // 1. Check for booking trigger
-    if (isVoiceBookingIntent(userText)) {
-      const confirmBookingSpeech = "बहुत बढ़िया! आइए आपकी बुकिंग शुरू करते हैं।";
-      if (voiceSubBot) voiceSubBot.textContent = confirmBookingSpeech;
-      speakText(confirmBookingSpeech, 'hi', () => {
+    if (res.type === 'BOOKING') {
+      if (voiceSubBot) voiceSubBot.textContent = res.spokenText;
+      speakText(res.spokenText, res.lang, () => {
         closeLiveVoiceSession();
         if (chatContainer) chatContainer.classList.add('active');
         startServiceBooking();
@@ -1952,51 +2435,21 @@ Booking Date & Time: ${timestamp}
       return;
     }
 
-    // 2. Query Knowledge Engine
-    const lang = detectLanguage(userText);
-    const cleanedText = userText.toLowerCase().replace(/[?,.!;:'"()]/g, ' ');
-    const queryWords = cleanedText.split(/\s+/).filter(w => w.length > 1);
-
-    let bestTopic = null;
-    let highestScore = 0;
-
-    for (const topic of CREATOR_NIHAR_KB) {
-      let score = 0;
-      for (const phrase of topic.phrases) {
-        if (cleanedText.includes(phrase)) score += 12;
+    // 2. Interruption
+    if (res.type === 'INTERRUPT') {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
       }
-      for (const kw of topic.keywords) {
-        if (cleanedText.includes(kw)) score += 3;
-      }
-      for (const qw of queryWords) {
-        if (topic.keywords.some(kw => kw === qw)) score += 1;
-      }
-      if (score > highestScore) {
-        highestScore = score;
-        bestTopic = topic;
-      }
+      isSpeaking = false;
+      currentSpeakingText = '';
+      setVoiceState('listening');
+      if (voiceSubBot) voiceSubBot.textContent = '⏸️ रुका हुआ (Listening...)';
+      return;
     }
 
-    let responseText = '';
-    let spokenText = '';
-
-    if (bestTopic && highestScore >= 3) {
-      const rawHtml = bestTopic.answers[lang] || bestTopic.answers.en;
-      spokenText = cleanTextForSpeech(rawHtml);
-      responseText = spokenText;
-    } else {
-      if (lang === 'hi') {
-        spokenText = "इस जानकारी के बारे में मेरे पास सत्यापित जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं।";
-      } else if (lang === 'hinglish') {
-        spokenText = "Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain.";
-      } else {
-        spokenText = "I do not have verified information regarding this in my official knowledge base. You can directly contact Nihar.";
-      }
-      responseText = spokenText;
-    }
-
-    if (voiceSubBot) voiceSubBot.textContent = responseText;
-    speakText(spokenText, lang, () => {
+    // 3. Normal Answer or Fallback
+    if (voiceSubBot) voiceSubBot.textContent = res.spokenText;
+    speakText(res.spokenText, res.lang, () => {
       // Natural back-and-forth: auto-resume listening for next question
       if (voiceSessionActive && !isVoiceMuted) {
         startListening();
@@ -2009,6 +2462,7 @@ Booking Date & Time: ${timestamp}
       window.speechSynthesis.cancel();
     }
     isSpeaking = false;
+    currentSpeakingText = '';
     if (voiceSessionActive && !isVoiceMuted) {
       startListening();
     }
@@ -2044,5 +2498,20 @@ Booking Date & Time: ${timestamp}
       if (label) label.textContent = 'Mute';
     }
   }
+
+  // Expose API for external integration and testing
+  window.ShivaAI = {
+    processQuery: processConversationalQuery,
+    getContext: () => ({ ...conversationContext }),
+    resetContext: () => {
+      conversationContext.lastEntity = null;
+      conversationContext.lastTopic = null;
+      conversationContext.lastQuestion = '';
+      conversationContext.lastLanguage = 'hinglish';
+    },
+    startLiveVoice: startLiveVoiceSession,
+    closeLiveVoice: closeLiveVoiceSession,
+    interruptVoice: interruptVoiceSpeaking
+  };
 
 })();
