@@ -330,6 +330,599 @@
     }
   }
 
+  /* ==========================================================================
+     CREATOR NIHAR VERIFIED KNOWLEDGE BASE & Q&A ENGINE
+     ========================================================================== */
+  const CREATOR_NIHAR_KB = [
+    {
+      id: 'founder_nihar',
+      phrases: [
+        'who is nihar', 'who is nihar amrawat', 'about nihar', 'founder', 'owner',
+        'nihar kon hai', 'nihar kaun hai', 'nihar amrawat kon hai', 'nihar amrawat kaun hai',
+        'malik kon hai', 'owner kon hai', 'founder kon hai', 'kiski website hai', 'who owns creator nihar',
+        'tell me about nihar', 'tell me about the founder', 'who created this',
+        'निहार कौन है', 'निहार अमरावत कौन है', 'फाउंडर कौन है', 'मालिक कौन है', 'वेबसाइट किसकी है'
+      ],
+      keywords: [
+        'nihar', 'amrawat', 'founder', 'owner', 'creator', 'bca', 'ceh', 'ethical hacker',
+        'kon hai', 'kaun hai', 'malik', 'kiski', 'निहार', 'अमरावत', 'फाउंडर', 'मालिक'
+      ],
+      answers: {
+        en: `
+          <strong>Nihar Amrawat</strong> is the Founder &amp; Owner of Creator Nihar.<br><br>
+          • <strong>Role:</strong> Professional AI Video Creator &amp; AI Website Developer<br>
+          • <strong>Certification:</strong> Certified Ethical Hacker (CEH)<br>
+          • <strong>Age:</strong> 19 years old<br>
+          • <strong>Education:</strong> BCA — 2nd Year Student<br>
+          • <strong>Location:</strong> Udaipur, Rajasthan, India<br>
+          • <strong>Vision:</strong> Build Creator Nihar into a globally recognized leading creative technology brand.<br><br>
+          Nihar personally oversees every client project with 100% dedication, personal attention, and zero middlemen.
+        `,
+        hi: `
+          <strong>निहार अमरावत</strong> Creator Nihar के संस्थापक और मालिक (Founder &amp; Owner) हैं।<br><br>
+          • <strong>भूमिका:</strong> प्रोफेशनल AI Video Creator और AI Website Developer<br>
+          • <strong>प्रमाणपत्र:</strong> Certified Ethical Hacker (CEH)<br>
+          • <strong>आयु:</strong> 19 वर्ष<br>
+          • <strong>शिक्षा:</strong> BCA — द्वितीय वर्ष (2nd Year) के छात्र<br>
+          • <strong>स्थान:</strong> उदयपुर, राजस्थान, भारत<br>
+          • <strong>विज़न:</strong> Creator Nihar को वैश्विक स्तर पर एक प्रमुख और प्रतिष्ठित क्रिएटिव टेक्नोलॉजी ब्रांड बनाना।<br><br>
+          निहार हर प्रोजेक्ट पर व्यक्तिगत रूप से काम करते हैं, जिससे ग्राहकों को शत-प्रतिशत पारदर्शिता और गुणवत्ता मिलती है।
+        `,
+        hinglish: `
+          <strong>Nihar Amrawat</strong> Creator Nihar ke Founder &amp; Owner hain.<br><br>
+          • <strong>Profile:</strong> Professional AI Video Creator &amp; AI Website Developer<br>
+          • <strong>Credential:</strong> Certified Ethical Hacker (CEH)<br>
+          • <strong>Age:</strong> 19 saal<br>
+          • <strong>Education:</strong> BCA — 2nd Year Student<br>
+          • <strong>Location:</strong> Udaipur, Rajasthan, India<br>
+          • <strong>Vision:</strong> Creator Nihar ko globally recognized leading creative technology brand banana.<br><br>
+          Nihar har client project ko personally handle karte hain bina kisi bicholiye ke, 100% dedication ke saath.
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '📞 Contact Nihar', action: 'contact_info' },
+        { text: '💰 Pricing Details', action: 'pricing_info' }
+      ]
+    },
+    {
+      id: 'brand_creator_nihar',
+      phrases: [
+        'what is creator nihar', 'about creator nihar', 'creator nihar kya hai', 'ye kya hai',
+        'kya company hai', 'agency kya karti hai', 'what do you do', 'what does creator nihar do',
+        'brand tagline', 'what is the tagline', 'tagline kya hai',
+        'क्रिएटर निहार क्या है', 'यह क्या कंपनी है', 'टैगलाइन क्या है'
+      ],
+      keywords: [
+        'creator nihar', 'agency', 'company', 'brand', 'tagline', 'creative minds', 'digital excellence',
+        'kya hai', 'kya kaam', 'क्रिएटर निहार', 'कंपनी', 'एजेंसी'
+      ],
+      answers: {
+        en: `
+          <strong>Creator Nihar</strong> is a premier creative technology brand.<br><br>
+          • <strong>Tagline:</strong> <em>"Creative Minds. Digital Excellence."</em><br>
+          • <strong>Founder:</strong> Nihar Amrawat (Udaipur, Rajasthan)<br>
+          • <strong>Core Specializations:</strong><br>
+            1. High-impact <strong>AI Video Creation</strong> (₹1,500/video)<br>
+            2. High-performance <strong>AI Website Development</strong> (₹20,000/website)<br>
+          • <strong>Reach:</strong> Services available to clients across India and globally.
+        `,
+        hi: `
+          <strong>Creator Nihar</strong> एक आधुनिक क्रिएटिव टेक्नोलॉजी एजेंसी है।<br><br>
+          • <strong>टैगलाइन:</strong> <em>"Creative Minds. Digital Excellence."</em><br>
+          • <strong>फाउंडर:</strong> निहार अमरावत (उदयपुर, राजस्थान)<br>
+          • <strong>मुख्य सेवाएं:</strong><br>
+            1. <strong>AI Video Creation:</strong> ₹1,500 / वीडियो<br>
+            2. <strong>AI Website Development:</strong> ₹20,000 / वेबसाइट<br>
+          • <strong>सेवा क्षेत्र:</strong> पूरे भारत और अंतरराष्ट्रीय स्तर पर क्लाइंट्स के लिए उपलब्ध।
+        `,
+        hinglish: `
+          <strong>Creator Nihar</strong> ek modern creative technology brand hai.<br><br>
+          • <strong>Tagline:</strong> <em>"Creative Minds. Digital Excellence."</em><br>
+          • <strong>Founder:</strong> Nihar Amrawat (Udaipur, Rajasthan)<br>
+          • <strong>Core Services:</strong><br>
+            1. High-impact <strong>AI Video Creation</strong> (₹1,500/video)<br>
+            2. Modern <strong>Website Development</strong> (₹20,000/website)<br>
+          • <strong>Reach:</strong> Pure India aur worldwide clients ke liye available.
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '🎥 AI Video Info', action: 'ai_video_info' },
+        { text: '💻 Website Info', action: 'web_creation_info' }
+      ]
+    },
+    {
+      id: 'pricing_details',
+      phrases: [
+        'pricing', 'price', 'rates', 'cost', 'charges', 'how much', 'fee', 'fees',
+        'kitna lagega', 'kitne me banega', 'paisa', 'paise', 'kharch', 'kitna kharcha', 'rate kya hai',
+        'video ka price', 'website ka price', 'video kitne ki hai', 'website kitne ki hai',
+        'प्राइस', 'रेट', 'खर्च', 'कीमत', 'कितना लगेगा', 'कितने पैसे लगेंगे'
+      ],
+      keywords: [
+        'price', 'pricing', 'rate', 'rates', 'cost', 'costs', 'fee', 'fees', 'charge', 'charges',
+        'kitna', 'kitne', 'paisa', 'paise', 'kharch', 'kharcha', 'rupaye', '1500', '20000', 'budget',
+        'कीमत', 'रेट', 'खर्च', 'पैसे'
+      ],
+      answers: {
+        en: `
+          <strong>Creator Nihar Official Transparent Pricing:</strong><br><br>
+          1. <strong>AI Video Creation:</strong> ₹1,500 / video<br>
+          2. <strong>Website Creation:</strong> ₹20,000 / website<br>
+          3. <strong>Both Services:</strong> Can be booked together as a combined package<br><br>
+          <em>Note: Final pricing may vary for highly customized requirements. Zero hidden charges.</em>
+        `,
+        hi: `
+          <strong>Creator Nihar की आधिकारिक और पारदर्शी कीमतें (Pricing):</strong><br><br>
+          1. <strong>AI Video Creation:</strong> ₹1,500 / वीडियो<br>
+          2. <strong>Website Creation:</strong> ₹20,000 / वेबसाइट<br>
+          3. <strong>दोनों सेवाएं (Both):</strong> एक साथ भी बुक की जा सकती हैं<br><br>
+          <em>नोट: अत्यधिक कस्टमाइज़्ड आवश्यकताओं के लिए अंतिम कीमत भिन्न हो सकती है। कोई छुपा हुआ शुल्क नहीं।</em>
+        `,
+        hinglish: `
+          <strong>Creator Nihar Official Transparent Pricing:</strong><br><br>
+          1. <strong>AI Video Creation:</strong> ₹1,500 / video<br>
+          2. <strong>Website Creation:</strong> ₹20,000 / website<br>
+          3. <strong>Both Services:</strong> Dono ek saath bhi book kar sakte hain<br><br>
+          <em>Note: Highly customized requirements ke liye final pricing vary ho sakti hai. Zero hidden charges.</em>
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '🎥 AI Video (₹1,500)', action: 'ai_video_info' },
+        { text: '💻 Website (₹20,000)', action: 'web_creation_info' }
+      ]
+    },
+    {
+      id: 'ai_video_service',
+      phrases: [
+        'ai video', 'video creation', 'video service', 'video editing', 'reels', 'shorts',
+        'video kaise banegi', 'video me kya milega', 'video service details', 'promotional video',
+        'story video', 'brand video', 'product video', 'social media video',
+        'वीडियो', 'रील्स', 'शॉर्ट्स', 'वीडियो सर्विस', 'वीडियो कैसे बनती है'
+      ],
+      keywords: [
+        'video', 'videos', 'ai video', 'reels', 'shorts', 'promo', 'storyboard', 'script', 'visuals',
+        'वीडियो', 'रील्स', 'शॉर्ट्स'
+      ],
+      answers: {
+        en: `
+          <strong>AI Video Creation — ₹1,500/video</strong><br><br>
+          • <strong>What is included:</strong><br>
+            - AI-generated video creation with high-impact visuals<br>
+            - Creative concept &amp; script development<br>
+            - Story-based videos &amp; brand storytelling<br>
+            - Product &amp; brand promotional videos<br>
+            - Social media videos (Instagram Reels &amp; YouTube Shorts)<br>
+            - Custom video requirements tailored to your brand<br>
+            - Fast turnaround time<br><br>
+          Price: <strong>₹1,500 per video</strong>.
+        `,
+        hi: `
+          <strong>AI Video Creation — ₹1,500/वीडियो</strong><br><br>
+          • <strong>सर्विस में क्या शामिल है:</strong><br>
+            - AI-जनरेटेड वीडियो और हाई-इम्पैक्ट विज़ुअल्स<br>
+            - क्रिएटिव कॉन्सेप्ट और स्क्रिप्ट राइटिंग<br>
+            - स्टोरी-बेस्ड वीडियो और ब्रांड स्टोरीटेलिंग<br>
+            - प्रोडक्ट और ब्रांड प्रमोशनल वीडियो<br>
+            - सोशल मीडिया वीडियो (Instagram Reels और YouTube Shorts)<br>
+            - आपके ब्रांड के अनुसार कस्टम वीडियो आवश्यकताएं<br>
+            - तेज़ डिलीवरी (Fast turnaround)<br><br>
+          कीमत: <strong>₹1,500 प्रति वीडियो</strong>।
+        `,
+        hinglish: `
+          <strong>AI Video Creation — ₹1,500/video</strong><br><br>
+          • <strong>Service me kya shamil hai:</strong><br>
+            - AI-generated visuals aur creative video creation<br>
+            - Creative concepts aur script development<br>
+            - Story-based videos aur brand storytelling<br>
+            - Product aur brand promotional videos<br>
+            - Instagram Reels &amp; YouTube Shorts<br>
+            - Custom brand requirements ke anusaar video<br>
+            - Fast turnaround delivery<br><br>
+          Price: <strong>₹1,500 per video</strong>.
+        `
+      },
+      buttons: [
+        { text: '📋 AI Video Book करें (₹1,500)', action: 'start_booking', primary: true },
+        { text: '💰 Pricing Details', action: 'pricing_info' },
+        { text: '📞 Contact Nihar', action: 'contact_info' }
+      ]
+    },
+    {
+      id: 'website_creation_service',
+      phrases: [
+        'website', 'website creation', 'website development', 'web design', 'landing page',
+        'portfolio website', 'business website', 'website kaise banegi', 'website me kya milega',
+        'web service details', 'website features', 'responsive website',
+        'वेबसाइट', 'वेब डेवलपमेंट', 'वेब डिज़ाइन', 'वेबसाइट कैसे बनेगी', 'वेबसाइट में क्या मिलेगा'
+      ],
+      keywords: [
+        'website', 'web', 'landing page', 'portfolio', 'business website', 'responsive', 'ui/ux',
+        'seo', 'forms', 'whatsapp', 'वेबसाइट', 'वेब'
+      ],
+      answers: {
+        en: `
+          <strong>Website Creation — ₹20,000/website</strong><br><br>
+          • <strong>Verified Features:</strong><br>
+            - Modern UI/UX custom design<br>
+            - 100% responsive across mobile, tablet &amp; desktop<br>
+            - Professional landing pages &amp; business websites<br>
+            - Portfolio websites for creators &amp; professionals<br>
+            - Contact &amp; lead capture forms<br>
+            - WhatsApp integration &amp; custom branding<br>
+            - Clean code, fast loading speed &amp; SEO-ready<br><br>
+          Price: <strong>₹20,000 per website</strong>.
+        `,
+        hi: `
+          <strong>Website Creation — ₹20,000/वेबसाइट</strong><br><br>
+          • <strong>मुख्य विशेषताएं:</strong><br>
+            - मॉडर्न UI/UX कस्टम डिज़ाइन<br>
+            - मोबाइल, टैबलेट और डेस्कटॉप पर 100% रेस्पॉन्सिव<br>
+            - प्रोफेशनल लैंडिंग पेज और बिज़नेस वेबसाइट्स<br>
+            - क्रिएटर्स और प्रोफेशनल्स के लिए पोर्टफोलियो वेबसाइट्स<br>
+            - कांटेक्ट और लीड कैप्चर फॉर्म्स<br>
+            - व्हाट्सएप इंटीग्रेशन और कस्टम ब्रांडिंग<br>
+            - क्लीन कोड, तेज़ लोडिंग स्पीड और SEO-रेडी<br><br>
+          कीमत: <strong>₹20,000 प्रति वेबसाइट</strong>।
+        `,
+        hinglish: `
+          <strong>Website Creation — ₹20,000/website</strong><br><br>
+          • <strong>Key Features:</strong><br>
+            - Modern UI/UX custom design<br>
+            - Mobile, tablet aur desktop pe 100% responsive<br>
+            - Professional landing pages &amp; business websites<br>
+            - Portfolio websites for creators &amp; professionals<br>
+            - Contact &amp; lead capture forms<br>
+            - WhatsApp integration &amp; custom branding<br>
+            - Clean code, fast loading speed &amp; SEO-ready<br><br>
+          Price: <strong>₹20,000 per website</strong>.
+        `
+      },
+      buttons: [
+        { text: '📋 Website Book करें (₹20,000)', action: 'start_booking', primary: true },
+        { text: '💰 Pricing Details', action: 'pricing_info' },
+        { text: '📞 Contact Nihar', action: 'contact_info' }
+      ]
+    },
+    {
+      id: 'process_workflow',
+      phrases: [
+        'process', 'workflow', 'steps', 'how do you work', 'kaise kaam karte ho',
+        'what is the process', 'how it works', 'working process', 'procedure',
+        'kaise shuru kare', 'kaise banega', 'step by step',
+        'काम कैसे होता है', 'प्रक्रिया क्या है', 'तरीका क्या है', 'स्टेप्स'
+      ],
+      keywords: [
+        'process', 'workflow', 'step', 'steps', 'brief', 'strategy', 'draft', 'review', 'refinement', 'delivery',
+        'kaise', 'tarika', 'प्रक्रिया', 'तरीका', 'स्टेप्स'
+      ],
+      answers: {
+        en: `
+          <strong>Creator Nihar Verified 4-Step Process:</strong><br><br>
+          1. <strong>Consultation &amp; Brief:</strong> We understand your vision, goals, and specific project requirements.<br>
+          2. <strong>AI Strategy &amp; Draft:</strong> We create the concept, script/storyboard for videos, or website architecture &amp; UI design.<br>
+          3. <strong>Review &amp; Refinement:</strong> We share the draft, incorporate your feedback, and refine the details.<br>
+          4. <strong>Final Delivery &amp; Launch:</strong> We deliver high-definition video assets or deploy your live website.
+        `,
+        hi: `
+          <strong>Creator Nihar की 4-चरणीय कार्य प्रक्रिया (4-Step Process):</strong><br><br>
+          1. <strong>Consultation &amp; Brief:</strong> हम आपके विज़न, लक्ष्यों और प्रोजेक्ट की प्राथमिकताओं को समझते हैं।<br>
+          2. <strong>AI Strategy &amp; Draft:</strong> वीडियो का कॉन्सेप्ट/स्क्रिप्ट या वेबसाइट का आर्किटेक्चर और ड्राफ्ट डिज़ाइन तैयार किया जाता है।<br>
+          3. <strong>Review &amp; Refinement:</strong> आपके फीडबैक के आधार पर आवश्यक सुधार और फाइन-ट्यूनिंग की जाती है।<br>
+          4. <strong>Final Delivery &amp; Launch:</strong> फाइनल HD वीडियो की डिलीवरी या लाइव वेबसाइट का सफल डिप्लॉयमेंट किया जाता है।
+        `,
+        hinglish: `
+          <strong>Creator Nihar 4-Step Working Process:</strong><br><br>
+          1. <strong>Consultation &amp; Brief:</strong> Aapke vision, goals aur project requirements ko samajhna.<br>
+          2. <strong>AI Strategy &amp; Draft:</strong> Video concept/script ya website UI architecture tayyar karna.<br>
+          3. <strong>Review &amp; Refinement:</strong> Aapke feedback ke hisaab se refine aur polish karna.<br>
+          4. <strong>Final Delivery &amp; Launch:</strong> Final HD video delivery ya live website launch karna.
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '📞 Contact Nihar', action: 'contact_info' }
+      ]
+    },
+    {
+      id: 'consultation',
+      phrases: [
+        'consultation', 'free consultation', 'zoom', 'meeting', 'free meeting',
+        'free consultation kya hai', 'zoom meeting kaise hogi', 'zoom link',
+        'meeting kaise book kare', 'free call', 'discuss project',
+        'फ्री कंसल्टेशन', 'ज़ूम मीटिंग', 'मीटिंग कैसे होगी', 'कंसल्टेशन'
+      ],
+      keywords: [
+        'consultation', 'free consultation', 'zoom', 'meeting', 'call', 'discuss',
+        'फ्री', 'कंसल्टेशन', 'मीटिंग', 'ज़ूम'
+      ],
+      answers: {
+        en: `
+          <strong>Free 1-on-1 Zoom Consultation:</strong><br><br>
+          • <strong>What it is:</strong> A 100% Free consultation to discuss your project ideas, AI video requirements, website goals, and pricing.<br>
+          • <strong>How to request:</strong> Visit the <a href="free-consultation.html">Free Consultation Page</a> and submit your brief.<br><br>
+          <em>Important: The meeting is personally confirmed by Nihar Amrawat after reviewing your request. We do not generate automatic Zoom links.</em>
+        `,
+        hi: `
+          <strong>फ्री 1-on-1 Zoom Consultation:</strong><br><br>
+          • <strong>यह क्या है:</strong> आपके प्रोजेक्ट आइडिया, AI वीडियो या वेबसाइट की आवश्यकताओं पर चर्चा करने के लिए 100% फ्री कंसल्टेशन।<br>
+          • <strong>कैसे बुक करें:</strong> <a href="free-consultation.html">Free Consultation पेज</a> पर जाकर अपना फॉर्म भरें।<br><br>
+          <em>महत्वपूर्ण नोट: मीटिंग को निहार अमरावत स्वयं आपकी रिक्वेस्ट देखकर कन्फर्म करते हैं। कोई ऑटोमैटिक ज़ूम लिंक जारी नहीं होता है।</em>
+        `,
+        hinglish: `
+          <strong>Free 1-on-1 Zoom Consultation:</strong><br><br>
+          • <strong>Details:</strong> 100% Free 1-on-1 session jisme hum aapke project ideas, AI video requirements, aur website pricing discuss karte hain.<br>
+          • <strong>Kaise book kare:</strong> <a href="free-consultation.html">Free Consultation page</a> par jaakar form submit karein.<br><br>
+          <em>Note: Nihar Amrawat personally review karke meeting confirm karte hain. Koi automatic Zoom link generate nahi hota.</em>
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '📞 Contact Nihar', action: 'contact_info' }
+      ]
+    },
+    {
+      id: 'contact_details',
+      phrases: [
+        'contact', 'how to contact', 'phone', 'call', 'whatsapp', 'email', 'mobile',
+        'contact number', 'phone number', 'whatsapp number', 'email id',
+        'kaise contact kare', 'baat kaise kare', 'sampark', 'sampark kaise kare', 'number kya hai',
+        'संपर्क', 'फ़ोन नंबर', 'व्हाट्सएप नंबर', 'ईमेल', 'कॉल कैसे करें'
+      ],
+      keywords: [
+        'contact', 'phone', 'call', 'whatsapp', 'email', 'number', 'mobile',
+        'sampark', 'baat', 'संपर्क', 'फ़ोन', 'व्हाट्सएप', 'ईमेल', 'नंबर'
+      ],
+      answers: {
+        en: `
+          <strong>Creator Nihar Official Contact Details:</strong><br><br>
+          • 📞 <strong>Phone:</strong> <a href="tel:+917723913729">+91 7723913729</a><br>
+          • 💬 <strong>WhatsApp:</strong> <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer">+91 7723913729</a><br>
+          • 📧 <strong>Email:</strong> <a href="mailto:nhrnhl0507@gmail.com">nhrnhl0507@gmail.com</a><br>
+          • 🌐 <strong>Website:</strong> <a href="https://creatornihar.co.in/">creatornihar.co.in</a><br>
+          • 📍 <strong>Location:</strong> Udaipur, Rajasthan, India
+        `,
+        hi: `
+          <strong>Creator Nihar सीधा संपर्क विवरण (Contact Details):</strong><br><br>
+          • 📞 <strong>फ़ोन:</strong> <a href="tel:+917723913729">+91 7723913729</a><br>
+          • 💬 <strong>व्हाट्सएप:</strong> <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer">+91 7723913729</a><br>
+          • 📧 <strong>ईमेल:</strong> <a href="mailto:nhrnhl0507@gmail.com">nhrnhl0507@gmail.com</a><br>
+          • 🌐 <strong>वेबसाइट:</strong> <a href="https://creatornihar.co.in/">creatornihar.co.in</a><br>
+          • 📍 <strong>स्थान:</strong> उदयपुर, राजस्थान, भारत
+        `,
+        hinglish: `
+          <strong>Creator Nihar Direct Contact Details:</strong><br><br>
+          • 📞 <strong>Phone:</strong> <a href="tel:+917723913729">+91 7723913729</a><br>
+          • 💬 <strong>WhatsApp:</strong> <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer">+91 7723913729</a><br>
+          • 📧 <strong>Email:</strong> <a href="mailto:nhrnhl0507@gmail.com">nhrnhl0507@gmail.com</a><br>
+          • 🌐 <strong>Website:</strong> <a href="https://creatornihar.co.in/">creatornihar.co.in</a><br>
+          • 📍 <strong>Location:</strong> Udaipur, Rajasthan, India
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '💰 Pricing Details', action: 'pricing_info' }
+      ]
+    },
+    {
+      id: 'location_reach',
+      phrases: [
+        'location', 'where are you located', 'where is creator nihar', 'city', 'office', 'address',
+        'kaha ho', 'kaha rehte ho', 'kaha se ho', 'kaha par hai', 'udaipur', 'rajasthan',
+        'dusre shahar me kaam karte ho', 'global', 'international',
+        'कहाँ हो', 'कहाँ से हो', 'लोकेशन', 'पता', 'उदयपुर', 'राजस्थान'
+      ],
+      keywords: [
+        'location', 'where', 'city', 'office', 'address', 'udaipur', 'rajasthan', 'india', 'global',
+        'kaha', 'kahan', 'rehte', 'कहाँ', 'लोकेशन', 'उदयपुर', 'राजस्थान'
+      ],
+      answers: {
+        en: `
+          <strong>Location &amp; Service Availability:</strong><br><br>
+          • <strong>Location:</strong> Creator Nihar is based in <strong>Udaipur, Rajasthan, India</strong>.<br>
+          • <strong>Service Coverage:</strong> Available to clients across <strong>all of India and globally</strong> via remote online collaboration.<br><br>
+          No matter where you are located, we deliver AI videos and modern websites seamlessly.
+        `,
+        hi: `
+          <strong>स्थान और सेवा क्षेत्र (Location &amp; Reach):</strong><br><br>
+          • <strong>स्थान:</strong> Creator Nihar <strong>उदयपुर, राजस्थान, भारत</strong> में स्थित है।<br>
+          • <strong>सेवा क्षेत्र:</strong> हमारी सेवाएं <strong>पूरे भारत और वैश्विक स्तर पर (Globally)</strong> उपलब्ध हैं।<br><br>
+          आप चाहे भारत के किसी भी शहर में हों या विदेश में, हम ऑनलाइन माध्यम से पूरी गुणवत्ता के साथ AI वीडियो और वेबसाइट्स तैयार करते हैं।
+        `,
+        hinglish: `
+          <strong>Location &amp; Service Availability:</strong><br><br>
+          • <strong>Location:</strong> Creator Nihar <strong>Udaipur, Rajasthan, India</strong> me based hai.<br>
+          • <strong>Service Reach:</strong> Pure <strong>India aur Globally</strong> clients ke liye services available hain.<br><br>
+          Aap chahe kisi bhi city ya country me ho, hum seamlessly online collaborate karke AI videos aur websites deliver karte hain.
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '📞 Contact Nihar', action: 'contact_info' }
+      ]
+    },
+    {
+      id: 'both_services',
+      phrases: [
+        'both services', 'dono service', 'combo', 'package', 'both video and website',
+        'dono karwana hai', 'dono chahiye', 'video aur website dono',
+        'दोनों सेवाएं', 'कॉम्बो पैकेज'
+      ],
+      keywords: [
+        'both', 'dono', 'combo', 'package', 'together', 'दोनों'
+      ],
+      answers: {
+        en: `
+          <strong>Combined Digital Package (Both Services):</strong><br><br>
+          You can book both <strong>AI Video Creation</strong> (₹1,500/video) and <strong>Website Creation</strong> (₹20,000/website) together.<br><br>
+          This provides a comprehensive digital footprint for your brand: high-impact AI video marketing for social media + a high-performance modern website.
+        `,
+        hi: `
+          <strong>कंबाइंड पैकेज (दोनों सेवाएं):</strong><br><br>
+          आप <strong>AI Video Creation</strong> (₹1,500/वीडियो) और <strong>Website Creation</strong> (₹20,000/वेबसाइट) दोनों सेवाएं एक साथ बुक कर सकते हैं।<br><br>
+          यह आपके ब्रांड को संपूर्ण डिजिटल उपस्थिति देता है: सोशल मीडिया के लिए प्रभावशाली AI वीडियो मार्केटिंग + एक उच्च-प्रदर्शन वाली आधुनिक वेबसाइट।
+        `,
+        hinglish: `
+          <strong>Combined Package (Both Services):</strong><br><br>
+          Aap <strong>AI Video Creation</strong> (₹1,500/video) aur <strong>Website Creation</strong> (₹20,000/website) dono ek saath book kar sakte hain.<br><br>
+          Isse aapke brand ko complete digital solution milta hai: social media ke liye powerful AI videos + high-performance modern website.
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '💰 Pricing Details', action: 'pricing_info' }
+      ]
+    },
+    {
+      id: 'greetings',
+      phrases: [
+        'hi', 'hello', 'hey', 'namaste', 'namaskar', 'good morning', 'good evening', 'good afternoon',
+        'kaise ho', 'how are you', 'kya haal hai', 'sup',
+        'नमस्ते', 'हेलो', 'नमस्कार', 'हाय', 'कैसे हो'
+      ],
+      keywords: [
+        'hi', 'hello', 'hey', 'namaste', 'namaskar', 'नमस्ते', 'हेलो', 'नमस्कार'
+      ],
+      answers: {
+        en: `
+          Hello! 🙏 I am <strong>Shiva</strong>, the official AI Assistant of Creator Nihar.<br><br>
+          How can I assist you today? You can ask me anything about Creator Nihar, our founder Nihar Amrawat, services (AI Video ₹1,500 / Website ₹20,000), pricing, workflow, or book a service directly below:
+        `,
+        hi: `
+          नमस्ते! 🙏 मैं <strong>Shiva</strong>, Creator Nihar का आधिकारिक AI Assistant हूँ।<br><br>
+          मैं आपकी क्या मदद कर सकता हूँ? आप मुझसे Creator Nihar, हमारे फाउंडर निहार अमरावत, हमारी सेवाओं (AI Video ₹1,500 / Website ₹20,000), कीमतों, कार्य प्रक्रिया के बारे में कुछ भी पूछ सकते हैं या सीधे नीचे से सर्विस बुक कर सकते हैं:
+        `,
+        hinglish: `
+          Namaste! 🙏 Main <strong>Shiva</strong>, Creator Nihar ka official AI Assistant hoon.<br><br>
+          Main aapki kya madad kar sakta hoon? Aap mujhse Creator Nihar, Founder Nihar Amrawat, services (AI Video ₹1,500 / Website ₹20,000), pricing, ya process ke baare mein kuch bhi pooch sakte hain:
+        `
+      },
+      buttons: [
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true },
+        { text: '🎥 AI Video (₹1,500)', action: 'ai_video_info' },
+        { text: '💻 Website (₹20,000)', action: 'web_creation_info' },
+        { text: '💰 Pricing Details', action: 'pricing_info' },
+        { text: '📞 Contact Nihar', action: 'contact_info' }
+      ]
+    }
+  ];
+
+  function detectLanguage(text) {
+    if (/[\u0900-\u097F]/.test(text)) {
+      return 'hi';
+    }
+    const lower = text.toLowerCase();
+    const hinglishMarkers = [
+      'kya', 'hai', 'kaise', 'kitna', 'kitne', 'kaha', 'kahan', 'kon', 'kaun', 'batao',
+      'btao', 'karo', 'hoga', 'karna', 'chahiye', 'mera', 'meri', 'mujhe', 'aap', 'tum',
+      'paisa', 'paise', 'kharcha', 'rupaye', 'bhi', 'se', 'ho', 'h'
+    ];
+    const words = lower.replace(/[?,.!;:'"()]/g, ' ').split(/\s+/);
+    for (const w of words) {
+      if (hinglishMarkers.includes(w)) {
+        return 'hinglish';
+      }
+    }
+    return 'en';
+  }
+
+  function answerUserQuery(text) {
+    const lower = text.toLowerCase();
+
+    // 1. Check for Booking Intent -> Triggers Existing 9-Step Booking Flow!
+    const bookingTriggers = [
+      'book', 'booking', 'order', 'खरीदना', 'बुक', 'ऑर्डर',
+      'service leni hai', 'kharidna', 'purchase', 'hire', 'start service', 'start booking',
+      'kaam karwana hai', 'service book'
+    ];
+    if (bookingTriggers.some(trigger => lower.includes(trigger))) {
+      startServiceBooking();
+      return;
+    }
+
+    const lang = detectLanguage(text);
+    const cleanedText = lower.replace(/[?,.!;:'"()]/g, ' ');
+    const queryWords = cleanedText.split(/\s+/).filter(w => w.length > 1);
+
+    let bestTopic = null;
+    let highestScore = 0;
+
+    for (const topic of CREATOR_NIHAR_KB) {
+      let score = 0;
+
+      // Check phrase matches (+12)
+      for (const phrase of topic.phrases) {
+        if (cleanedText.includes(phrase)) {
+          score += 12;
+        }
+      }
+
+      // Check keyword matches (+3)
+      for (const kw of topic.keywords) {
+        if (cleanedText.includes(kw)) {
+          score += 3;
+        }
+      }
+
+      // Check query words against keywords (+1)
+      for (const qw of queryWords) {
+        if (topic.keywords.some(kw => kw === qw)) {
+          score += 1;
+        }
+      }
+
+      if (score > highestScore) {
+        highestScore = score;
+        bestTopic = topic;
+      }
+    }
+
+    // High confidence match found
+    if (bestTopic && highestScore >= 3) {
+      const responseHtml = bestTopic.answers[lang] || bestTopic.answers.en;
+      let buttonsHtml = '';
+      if (bestTopic.buttons && bestTopic.buttons.length > 0) {
+        buttonsHtml = '<div class="shiva-options">';
+        for (const btn of bestTopic.buttons) {
+          const btnClass = btn.primary ? 'shiva-opt-btn shiva-opt-primary' : 'shiva-opt-btn';
+          buttonsHtml += `<button type="button" class="${btnClass}" data-action="${btn.action}">${btn.text}</button>`;
+        }
+        buttonsHtml += '</div>';
+      }
+      addBotMessage(`${responseHtml}${buttonsHtml}`);
+      return;
+    }
+
+    // Truthfulness Rule: If not in verified knowledge base, admit truthfully
+    let fallbackText = '';
+    if (lang === 'hi') {
+      fallbackText = `इस जानकारी के बारे में मेरे पास सत्यापित (verified) जानकारी नहीं है। आप सीधे निहार से संपर्क कर सकते हैं:`;
+    } else if (lang === 'hinglish') {
+      fallbackText = `Is information ke baare mein mere paas verified information nahi hai. Aap Nihar se directly contact kar sakte hain:`;
+    } else {
+      fallbackText = `I do not have verified information regarding this topic in my official knowledge base. You can directly contact Nihar for more details:`;
+    }
+
+    const fallbackHtml = `
+      ${fallbackText}
+      <div class="shiva-contact-links">
+        <a href="tel:+917723913729" class="shiva-contact-link shiva-contact-phone">
+          📞 Call Nihar
+        </a>
+        <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer" class="shiva-contact-link shiva-contact-wa">
+          💬 WhatsApp Nihar
+        </a>
+      </div>
+      <div class="shiva-options">
+        <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="start_booking">📋 Service Book करें</button>
+        <button type="button" class="shiva-opt-btn" data-action="pricing_info">💰 Pricing Details</button>
+      </div>
+    `;
+    addBotMessage(fallbackHtml);
+  }
+
   // Handle Form Text Submits
   function handleUserSubmit() {
     const text = chatInput.value.trim();
@@ -350,29 +943,10 @@
       return;
     }
 
-    // Keyword detection in IDLE state
-    const lower = text.toLowerCase();
-    if (lower.includes('book') || lower.includes('booking') || lower.includes('service') || lower.includes('order')) {
-      startServiceBooking();
-    } else if (lower.includes('price') || lower.includes('cost') || lower.includes('rate') || lower.includes('fee')) {
-      handleOptionClick('pricing_info', 'Pricing');
-    } else if (lower.includes('video')) {
-      handleOptionClick('ai_video_info', 'AI Video Info');
-    } else if (lower.includes('website') || lower.includes('web')) {
-      handleOptionClick('web_creation_info', 'Website Info');
-    } else if (lower.includes('contact') || lower.includes('phone') || lower.includes('email') || lower.includes('number')) {
-      handleOptionClick('contact_info', 'Contact Info');
-    } else {
-      addBotMessage(`
-        धन्यवाद आपके संदेश के लिए! मैं आपकी सेवा के लिए उपस्थित हूँ।<br><br>
-        क्या आप Creator Nihar की कोई service book करना चाहते हैं?
-        <div class="shiva-options">
-          <button type="button" class="shiva-opt-btn shiva-opt-primary" data-action="start_booking">📋 Service Book करें</button>
-          <button type="button" class="shiva-opt-btn" data-action="pricing_info">💰 Pricing Details</button>
-        </div>
-      `);
-    }
+    // Process via Creator Nihar Knowledge Engine
+    answerUserQuery(text);
   }
+
 
   /* ==========================================================================
      SERVICE BOOKING STEP-BY-STEP FLOW
