@@ -180,9 +180,9 @@
       });
       if (error) throw error;
 
-      // Log login activity in background
+      // Log login activity and wait for database write before redirect
       if (data.user) {
-        CNAuth.logLoginActivity(data.user.id, data.user.email);
+        await CNAuth.logLoginActivity(data.user.id, data.user.email);
       }
       return data;
     },
@@ -207,7 +207,7 @@
 
       // If session established immediately (email confirmation disabled in Supabase)
       if (data.user && data.session) {
-        CNAuth.logLoginActivity(data.user.id, data.user.email);
+        await CNAuth.logLoginActivity(data.user.id, data.user.email);
       }
       return data;
     },
@@ -251,14 +251,33 @@
     logLoginActivity: async (userId, email) => {
       if (!supabaseClient || !userId) return;
       try {
+        // Prevent duplicate login events within 10 seconds (e.g. rapid submission or duplicate events)
+        const lastLogKey = `cn_last_login_${userId}`;
+        const lastLogTime = parseInt(sessionStorage.getItem(lastLogKey) || '0', 10);
+        const now = Date.now();
+        if (now - lastLogTime < 10000) {
+          return;
+        }
+
         const deviceInfo = getDeviceInfo();
-        await supabaseClient.from('login_activity').insert([
-          {
-            user_id: userId,
-            email: email,
-            device_info: deviceInfo
-          }
-        ]);
+        const { data, error: insertError } = await supabaseClient
+          .from('login_activity')
+          .insert([
+            {
+              user_id: userId,
+              email: email,
+              device_info: deviceInfo
+            }
+          ])
+          .select();
+
+        if (insertError) {
+          console.error('logLoginActivity insert error:', insertError);
+          return;
+        }
+
+        // Only mark sessionStorage debounce AFTER a confirmed database write
+        sessionStorage.setItem(lastLogKey, now.toString());
 
         await supabaseClient
           .from('profiles')
@@ -543,10 +562,10 @@
         ]);
 
         return {
-          users: (results[0].status === 'fulfilled' && results[0].value.count) ? results[0].value.count : 0,
-          logins: (results[1].status === 'fulfilled' && results[1].value.count) ? results[1].value.count : 0,
-          videos: (results[2].status === 'fulfilled' && results[2].value.count) ? results[2].value.count : 0,
-          bookings: (results[3].status === 'fulfilled' && results[3].value.count) ? results[3].value.count : 0
+          users: (results[0].status === 'fulfilled' && typeof results[0].value?.count === 'number') ? results[0].value.count : 0,
+          logins: (results[1].status === 'fulfilled' && typeof results[1].value?.count === 'number') ? results[1].value.count : 0,
+          videos: (results[2].status === 'fulfilled' && typeof results[2].value?.count === 'number') ? results[2].value.count : 0,
+          bookings: (results[3].status === 'fulfilled' && typeof results[3].value?.count === 'number') ? results[3].value.count : 0
         };
       } catch (err) {
         console.error('getDashboardStats error:', err);
@@ -570,15 +589,19 @@
       }
     },
 
-    getLoginActivity: async (limit = 50) => {
+    getLoginActivity: async (limit = null) => {
       if (!supabaseClient) return [];
       try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
           .from('login_activity')
           .select('*')
-          .order('created_at', { ascending: false })
-          .limit(limit);
+          .order('created_at', { ascending: false });
 
+        if (limit && Number.isInteger(limit) && limit > 0) {
+          query = query.limit(limit);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         return data || [];
       } catch (err) {
@@ -616,8 +639,11 @@
 
     // Listen to Supabase auth state changes for real-time reactivity
     if (supabaseClient) {
-      supabaseClient.auth.onAuthStateChange((event, session) => {
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
         CNAuth.initNavbar();
+        if (event === 'SIGNED_IN' && session && session.user) {
+          await CNAuth.logLoginActivity(session.user.id, session.user.email);
+        }
       });
     }
   });

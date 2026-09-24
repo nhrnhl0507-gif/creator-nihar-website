@@ -157,12 +157,13 @@
                   <tr>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Phone</th>
                     <th>Joined</th>
                     <th>Role</th>
                   </tr>
                 </thead>
                 <tbody id="overviewUsersTableBody">
-                  <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading registered users...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -178,13 +179,14 @@
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Email</th>
+                    <th>User ID</th>
+                    <th>Email Reference</th>
                     <th>Device</th>
                     <th>Timestamp</th>
                   </tr>
                 </thead>
                 <tbody id="overviewLoginsTableBody">
-                  <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                  <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading login events...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -198,11 +200,12 @@
         <div class="admin-panel-card">
           <div class="admin-panel-header">
             <div>
-              <h2 class="admin-panel-title">Registered User Accounts</h2>
-              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Real accounts registered through Creator Nihar</p>
+              <h2 class="admin-panel-title">Registered User Accounts <span id="usersTabCountBadge" style="margin-left: 8px; font-size: 0.78rem; background: var(--brand-blue-surface); color: var(--brand-blue); padding: 3px 10px; border-radius: 12px; font-weight: 700;">0 Total</span></h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Dynamic database accounts registered through Creator Nihar</p>
             </div>
-            <div class="admin-actions-bar">
-              <input type="text" id="userSearchInput" class="auth-input" placeholder="Search by name or email..." style="width: 260px; padding: 8px 12px; font-size: 0.88rem;">
+            <div class="admin-actions-bar" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="userSearchInput" class="auth-input" placeholder="Search by name, email, phone, or ID..." style="width: 280px; padding: 8px 12px; font-size: 0.88rem;">
+              <button type="button" class="btn btn-secondary" id="refreshUsersBtn" style="font-size: 0.82rem; padding: 7px 12px;">↻ Refresh Users</button>
             </div>
           </div>
 
@@ -234,10 +237,13 @@
         <div class="admin-panel-card">
           <div class="admin-panel-header">
             <div>
-              <h2 class="admin-panel-title">Login Activity Audit Log</h2>
+              <h2 class="admin-panel-title">Login Activity Audit Log <span id="loginsTabCountBadge" style="margin-left: 8px; font-size: 0.78rem; background: var(--brand-blue-surface); color: var(--brand-blue); padding: 3px 10px; border-radius: 12px; font-weight: 700;">0 Events</span></h2>
               <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Audited successful login timestamps and client device info</p>
             </div>
-            <button type="button" class="btn btn-secondary" id="refreshLoginsBtn" style="font-size: 0.82rem; padding: 6px 12px;">↻ Refresh Logs</button>
+            <div class="admin-actions-bar" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="loginSearchInput" class="auth-input" placeholder="Search by email, device, or ID..." style="width: 260px; padding: 8px 12px; font-size: 0.88rem;">
+              <button type="button" class="btn btn-secondary" id="refreshLoginsBtn" style="font-size: 0.82rem; padding: 7px 12px;">↻ Refresh Logs</button>
+            </div>
           </div>
 
           <div class="admin-table-wrap">
@@ -427,8 +433,22 @@
   <script src="assets/js/supabase-config.js?v=1.1"></script>
   <script>
     let allUsersCache = [];
+    let allLoginsCache = [];
     let allVideosCache = [];
     let allBookingsCache = [];
+
+    function copyToClipboard(text) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Copied to clipboard: ' + text);
+        }).catch(() => {
+          prompt('Copy to clipboard (Ctrl+C, Enter):', text);
+        });
+      } else {
+        prompt('Copy to clipboard (Ctrl+C, Enter):', text);
+      }
+    }
 
     function switchTab(tabId) {
       document.querySelectorAll('.admin-tab-btn').forEach(btn => {
@@ -486,19 +506,44 @@
       // Load Real Data
       await loadAdminDashboardData();
 
-      // User search filter
-      document.getElementById('userSearchInput').addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        const filtered = allUsersCache.filter(u =>
-          (u.name && u.name.toLowerCase().includes(query)) ||
-          (u.email && u.email.toLowerCase().includes(query)) ||
-          (u.id && u.id.toLowerCase().includes(query))
-        );
-        renderUsersTable(filtered);
-      });
+      // Dynamic User search filter (Name, Email, Phone, or ID)
+      const userSearchInput = document.getElementById('userSearchInput');
+      if (userSearchInput) {
+        userSearchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          const filtered = allUsersCache.filter(u =>
+            (u.name && u.name.toLowerCase().includes(query)) ||
+            (u.email && u.email.toLowerCase().includes(query)) ||
+            (u.phone && u.phone.toLowerCase().includes(query)) ||
+            (u.id && u.id.toLowerCase().includes(query))
+          );
+          renderUsersTable(filtered);
+        });
+      }
 
-      document.getElementById('refreshLoginsBtn').addEventListener('click', loadLoginActivity);
-      document.getElementById('refreshBookingsBtn').addEventListener('click', loadBookings);
+      // Dynamic Login Activity search filter (Email, Device, or ID)
+      const loginSearchInput = document.getElementById('loginSearchInput');
+      if (loginSearchInput) {
+        loginSearchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          const filtered = allLoginsCache.filter(l =>
+            (l.email && l.email.toLowerCase().includes(query)) ||
+            (l.device_info && l.device_info.toLowerCase().includes(query)) ||
+            (l.user_id && l.user_id.toLowerCase().includes(query)) ||
+            (l.id && l.id.toLowerCase().includes(query))
+          );
+          renderLoginsTable(filtered);
+        });
+      }
+
+      const refreshUsersBtn = document.getElementById('refreshUsersBtn');
+      if (refreshUsersBtn) refreshUsersBtn.addEventListener('click', loadUsers);
+
+      const refreshLoginsBtn = document.getElementById('refreshLoginsBtn');
+      if (refreshLoginsBtn) refreshLoginsBtn.addEventListener('click', loadLoginActivity);
+
+      const refreshBookingsBtn = document.getElementById('refreshBookingsBtn');
+      if (refreshBookingsBtn) refreshBookingsBtn.addEventListener('click', loadBookings);
 
       // Video Modal logic
       initVideoModal();
@@ -517,8 +562,10 @@
     async function loadStats() {
       try {
         const stats = await window.CNAdmin.getDashboardStats();
-        document.getElementById('statUsersCount').textContent = stats.users;
-        document.getElementById('statLoginsCount').textContent = stats.logins;
+        const totalUsers = Math.max(stats.users, allUsersCache.length);
+        const totalLogins = Math.max(stats.logins, allLoginsCache.length);
+        document.getElementById('statUsersCount').textContent = totalUsers;
+        document.getElementById('statLoginsCount').textContent = totalLogins;
         document.getElementById('statVideosCount').textContent = stats.videos;
         document.getElementById('statBookingsCount').textContent = stats.bookings;
       } catch (e) {
@@ -532,20 +579,28 @@
         allUsersCache = users;
         renderUsersTable(users);
 
-        // Render preview in overview tab
-        const preview = users.slice(0, 5);
+        const badge = document.getElementById('usersTabCountBadge');
+        if (badge) badge.textContent = `${users.length} Total`;
+        const statUsers = document.getElementById('statUsersCount');
+        if (statUsers) statUsers.textContent = users.length;
+
+        // Render preview in overview tab (Recent 8 user registrations)
+        const preview = users.slice(0, 8);
         const overviewTbody = document.getElementById('overviewUsersTableBody');
-        if (preview.length > 0) {
-          overviewTbody.innerHTML = preview.map(u => `
-            <tr>
-              <td><strong>${escapeHtml(u.name || 'Unnamed')}</strong></td>
-              <td>${escapeHtml(u.email)}</td>
-              <td>${formatDate(u.created_at)}</td>
-              <td><span class="${u.role === 'admin' ? 'badge-role-admin' : 'badge-role-user'}">${u.role}</span></td>
-            </tr>
-          `).join('');
-        } else {
-          overviewTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>`;
+        if (overviewTbody) {
+          if (preview.length > 0) {
+            overviewTbody.innerHTML = preview.map(u => `
+              <tr>
+                <td><strong>${escapeHtml(u.name || 'User')}</strong></td>
+                <td>${escapeHtml(u.email)}</td>
+                <td>${escapeHtml(u.phone || 'None')}</td>
+                <td>${formatDate(u.created_at)}</td>
+                <td><span class="${u.role === 'admin' ? 'badge-role-admin' : 'badge-role-user'}">${u.role}</span></td>
+              </tr>
+            `).join('');
+          } else {
+            overviewTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No user registrations recorded yet.</td></tr>`;
+          }
         }
       } catch (e) {
         console.error('loadUsers error:', e);
@@ -554,6 +609,7 @@
 
     function renderUsersTable(users) {
       const tbody = document.getElementById('usersTableBody');
+      if (!tbody) return;
       if (!users || users.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">No registered accounts match your criteria.</td></tr>`;
         return;
@@ -561,14 +617,17 @@
 
       tbody.innerHTML = users.map(u => `
         <tr>
-          <td style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);" title="${u.id}">${u.id.substring(0, 8)}...</td>
+          <td style="font-family: monospace; font-size: 0.78rem; color: var(--brand-blue); font-weight: 600;" title="${escapeHtml(u.id)}">
+            ${escapeHtml(u.id.substring(0, 8))}...
+            <button type="button" class="btn-table-action" onclick="copyToClipboard('${u.id}')" style="padding: 1px 4px; font-size: 0.68rem;" title="Copy Full User ID">📋</button>
+          </td>
           <td><strong>${escapeHtml(u.name || '-')}</strong></td>
           <td>${escapeHtml(u.email)}</td>
           <td>${escapeHtml(u.phone || 'None')}</td>
           <td>${formatDate(u.created_at)}</td>
           <td>${u.last_login ? formatDateTime(u.last_login) : 'Never'}</td>
           <td>
-            <select onchange="changeUserStatus('${u.id}', this.value)" style="padding: 3px 6px; font-size: 0.78rem; border-radius: 4px; border: 1px solid var(--border-light);">
+            <select onchange="changeUserStatus('${u.id}', this.value)" style="padding: 3px 6px; font-size: 0.78rem; border-radius: 4px; border: 1px solid var(--border-light); font-weight: 600;">
               <option value="active" ${u.status === 'active' ? 'selected' : ''}>Active</option>
               <option value="suspended" ${u.status === 'suspended' ? 'selected' : ''}>Suspended</option>
               <option value="inactive" ${u.status === 'inactive' ? 'selected' : ''}>Inactive</option>
@@ -576,7 +635,7 @@
           </td>
           <td><span class="${u.role === 'admin' ? 'badge-role-admin' : 'badge-role-user'}">${u.role}</span></td>
           <td>
-            <button type="button" class="btn-table-action" onclick="copyToClipboard('${u.id}')" title="Copy User ID">📋 ID</button>
+            <button type="button" class="btn-table-action" onclick="copyToClipboard('${u.email}')" title="Copy User Email">📧 Email</button>
           </td>
         </tr>
       `).join('');
@@ -593,37 +652,56 @@
 
     async function loadLoginActivity() {
       try {
-        const logins = await window.CNAdmin.getLoginActivity(50);
-        const tbody = document.getElementById('loginsTableBody');
+        const logins = await window.CNAdmin.getLoginActivity();
+        allLoginsCache = logins;
+        renderLoginsTable(logins);
+
+        const badge = document.getElementById('loginsTabCountBadge');
+        if (badge) badge.textContent = `${logins.length} Events`;
+        const statLogins = document.getElementById('statLoginsCount');
+        if (statLogins) statLogins.textContent = logins.length;
+
+        // Overview preview (Latest 8 login events)
         const overviewTbody = document.getElementById('overviewLoginsTableBody');
-
-        if (!logins || logins.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No login activity recorded yet.</td></tr>`;
-          overviewTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No login events yet.</td></tr>`;
-          return;
+        if (overviewTbody) {
+          if (logins.length > 0) {
+            overviewTbody.innerHTML = logins.slice(0, 8).map(l => `
+              <tr>
+                <td style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(l.user_id ? l.user_id.substring(0, 8) + '...' : '-')}</td>
+                <td><strong>${escapeHtml(l.email)}</strong></td>
+                <td>${escapeHtml(l.device_info || 'Web Browser')}</td>
+                <td>${formatDateTime(l.created_at)}</td>
+              </tr>
+            `).join('');
+          } else {
+            overviewTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No login events yet.</td></tr>`;
+          }
         }
-
-        tbody.innerHTML = logins.map(l => `
-          <tr>
-            <td style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">${l.id.substring(0, 8)}...</td>
-            <td style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">${l.user_id.substring(0, 8)}...</td>
-            <td><strong>${escapeHtml(l.email)}</strong></td>
-            <td>${escapeHtml(l.device_info || 'Unknown Device')}</td>
-            <td>${formatDateTime(l.created_at)}</td>
-          </tr>
-        `).join('');
-
-        // Overview preview (first 5)
-        overviewTbody.innerHTML = logins.slice(0, 5).map(l => `
-          <tr>
-            <td><strong>${escapeHtml(l.email)}</strong></td>
-            <td>${escapeHtml(l.device_info || 'Web')}</td>
-            <td>${formatDateTime(l.created_at)}</td>
-          </tr>
-        `).join('');
       } catch (e) {
         console.error('loadLoginActivity error:', e);
       }
+    }
+
+    function renderLoginsTable(logins) {
+      const tbody = document.getElementById('loginsTableBody');
+      if (!tbody) return;
+      if (!logins || logins.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No login activity recorded yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = logins.map(l => `
+        <tr>
+          <td style="font-family: monospace; font-size: 0.75rem; color: var(--brand-blue); font-weight: 600;" title="${escapeHtml(l.id)}">${escapeHtml(l.id.substring(0, 8))}...</td>
+          <td style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);" title="${escapeHtml(l.user_id)}">
+            ${escapeHtml(l.user_id.substring(0, 8))}...
+            <button type="button" class="btn-table-action" onclick="copyToClipboard('${l.user_id}')" style="padding: 1px 4px; font-size: 0.68rem;" title="Copy Full User ID">📋</button>
+          </td>
+          <td><strong>${escapeHtml(l.email)}</strong></td>
+          <td>${escapeHtml(l.device_info || 'Unknown Device')}</td>
+          <td>${formatDateTime(l.created_at)}</td>
+        </tr>
+      `).join('');
     }
 
     async function loadVideos() {
@@ -894,11 +972,6 @@
     function escapeHtml(str) {
       if (!str) return '';
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text);
-      alert('Copied to clipboard: ' + text);
     }
   </script>
 </body>

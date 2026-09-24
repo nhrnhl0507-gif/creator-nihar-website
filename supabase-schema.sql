@@ -94,6 +94,12 @@ set search_path = public
 stable
 as $$
 begin
+  -- Check 1: Owner email in auth token JWT
+  if lower(coalesce(auth.jwt() ->> 'email', '')) = 'nhrnhl0507@gmail.com' then
+    return true;
+  end if;
+
+  -- Check 2: Admin role in profiles table
   return exists (
     select 1
     from public.profiles
@@ -101,6 +107,8 @@ begin
   );
 end;
 $$;
+
+grant execute on function public.is_admin() to authenticated, anon;
 
 -- ============================================================================
 -- 6. AUTH TRIGGER: AUTO-CREATE PROFILE ON SIGNUP
@@ -252,6 +260,10 @@ create policy "Only admin can delete videos"
   on public.videos for delete
   to authenticated
   using (public.is_admin());
+
+-- Table privileges: authenticated role needs SQL permissions on public.videos (RLS enforces row-level policies)
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on table public.videos to authenticated;
 
 -- --- D. BOOKINGS POLICIES ---
 alter table public.bookings enable row level security;
