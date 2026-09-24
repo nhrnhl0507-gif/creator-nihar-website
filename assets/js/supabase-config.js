@@ -10,28 +10,50 @@
   'use strict';
 
   // --- SUPABASE PROJECT CREDENTIALS ---
-  // Replace these with your actual Supabase project URL and anon public key.
   // Obtain from: Supabase Dashboard -> Project Settings -> API
-  const DEFAULT_SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-  const DEFAULT_SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const DEFAULT_SUPABASE_URL = 'https://wzzmtkltpnglqtvehcjf.supabase.co';
+  const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_HNo_Tkdn8_W7ZYZ65WtuWg_dDme2_GA';
 
-  // Allow runtime override via window or localStorage (for testing & setup without re-deploying)
-  const SUPABASE_URL = window.__CN_SUPABASE_URL || localStorage.getItem('cn_supabase_url') || DEFAULT_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = window.__CN_SUPABASE_ANON_KEY || localStorage.getItem('cn_supabase_anon_key') || DEFAULT_SUPABASE_ANON_KEY;
+  // Sanitize localStorage overrides to ignore placeholders or empty values
+  let storedUrl = null;
+  let storedKey = null;
+  try {
+    storedUrl = localStorage.getItem('cn_supabase_url');
+    if (storedUrl && (storedUrl.includes('YOUR_PROJECT_ID') || !storedUrl.trim())) {
+      localStorage.removeItem('cn_supabase_url');
+      storedUrl = null;
+    }
+    storedKey = localStorage.getItem('cn_supabase_anon_key');
+    if (storedKey && (storedKey.includes('YOUR_SUPABASE_ANON_KEY') || !storedKey.trim())) {
+      localStorage.removeItem('cn_supabase_anon_key');
+      storedKey = null;
+    }
+  } catch (e) {
+    // localStorage might be blocked or restricted in certain browser modes
+  }
+
+  // Allow runtime override via window or sanitized localStorage
+  const SUPABASE_URL = (window.__CN_SUPABASE_URL && !window.__CN_SUPABASE_URL.includes('YOUR_PROJECT_ID'))
+    ? window.__CN_SUPABASE_URL
+    : (storedUrl || DEFAULT_SUPABASE_URL);
+
+  const SUPABASE_ANON_KEY = (window.__CN_SUPABASE_ANON_KEY && !window.__CN_SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY'))
+    ? window.__CN_SUPABASE_ANON_KEY
+    : (storedKey || DEFAULT_SUPABASE_ANON_KEY);
 
   let supabaseClient = null;
 
   function isConfigured() {
     return (
-      SUPABASE_URL &&
+      Boolean(SUPABASE_URL) &&
       !SUPABASE_URL.includes('YOUR_PROJECT_ID') &&
-      SUPABASE_ANON_KEY &&
+      Boolean(SUPABASE_ANON_KEY) &&
       !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')
     );
   }
 
-  // Initialize Supabase Client if library is loaded
-  if (window.supabase && typeof window.supabase.createClient === 'function') {
+  // Initialize Supabase Client if library is loaded and configuration is valid
+  if (isConfigured() && window.supabase && typeof window.supabase.createClient === 'function') {
     try {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
@@ -149,7 +171,9 @@
 
     // Log in with email & password
     signIn: async (email, password) => {
-      if (!supabaseClient) throw new Error('Supabase client not initialized. Please configure credentials.');
+      if (!isConfigured() || !supabaseClient) {
+        throw new Error('Supabase client is not configured yet. Please verify project credentials.');
+      }
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: email.trim(),
         password: password
@@ -165,7 +189,9 @@
 
     // Sign up new user
     signUp: async (name, email, password, phone = '') => {
-      if (!supabaseClient) throw new Error('Supabase client not initialized. Please configure credentials.');
+      if (!isConfigured() || !supabaseClient) {
+        throw new Error('Supabase client is not configured yet. Please verify project credentials.');
+      }
       const trimmedEmail = email.trim();
       const { data, error } = await supabaseClient.auth.signUp({
         email: trimmedEmail,
@@ -199,7 +225,9 @@
 
     // Forgot password (request recovery email)
     resetPasswordForEmail: async (email) => {
-      if (!supabaseClient) throw new Error('Supabase client not initialized.');
+      if (!isConfigured() || !supabaseClient) {
+        throw new Error('Supabase client is not configured yet. Please verify project credentials.');
+      }
       // Get base URL for reset redirect
       const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '') + '/reset-password.html';
       const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), {
@@ -507,7 +535,7 @@
     getDashboardStats: async () => {
       if (!supabaseClient) return { users: 0, logins: 0, videos: 0, bookings: 0 };
       try {
-        const [usersRes, loginsRes, videosRes, bookingsRes] = await Promise.all([
+        const results = await Promise.allSettled([
           supabaseClient.from('profiles').select('id', { count: 'exact', head: true }),
           supabaseClient.from('login_activity').select('id', { count: 'exact', head: true }),
           supabaseClient.from('videos').select('id', { count: 'exact', head: true }),
@@ -515,10 +543,10 @@
         ]);
 
         return {
-          users: usersRes.count || 0,
-          logins: loginsRes.count || 0,
-          videos: videosRes.count || 0,
-          bookings: bookingsRes.count || 0
+          users: (results[0].status === 'fulfilled' && results[0].value.count) ? results[0].value.count : 0,
+          logins: (results[1].status === 'fulfilled' && results[1].value.count) ? results[1].value.count : 0,
+          videos: (results[2].status === 'fulfilled' && results[2].value.count) ? results[2].value.count : 0,
+          bookings: (results[3].status === 'fulfilled' && results[3].value.count) ? results[3].value.count : 0
         };
       } catch (err) {
         console.error('getDashboardStats error:', err);
