@@ -1832,24 +1832,27 @@
     if (!d.bookingId) d.bookingId = generateBookingId();
     const timestamp = getTimestamp();
 
-    // Record booking in Supabase database in background (fire-and-forget, zero blocking)
+    // Record booking in Supabase database
     try {
       if (window.CNBookings && typeof window.CNBookings.createBooking === 'function') {
-        window.CNBookings.createBooking({
+        await window.CNBookings.createBooking({
           booking_id: d.bookingId,
-          name: d.name,
-          email: d.email,
-          phone: d.phone,
-          service: d.service,
-          project: d.project,
-          details: d.details,
-          budget: d.budget,
-          deadline: d.deadline,
-          additional: d.additional,
+          name: d.name || 'Client',
+          email: d.email || '',
+          phone: d.phone || '',
+          service: d.service || 'General Service',
+          project: d.project || 'Not specified',
+          details: d.details || 'No details provided',
+          budget: d.budget || 'To be discussed',
+          deadline: d.deadline || 'Flexible',
+          additional: d.additional || 'None',
           status: 'pending'
         });
+        console.log('Shiva AI: Booking successfully recorded in Supabase database:', d.bookingId);
       }
-    } catch (e) { /* ignore */ }
+    } catch (dbErr) {
+      console.error('Shiva AI: Supabase booking recording error:', dbErr);
+    }
 
     const emailSubject = `New Creator Nihar Service Booking - ${d.service} [${d.bookingId}]`;
     const emailBody = `NEW CREATOR NIHAR SERVICE BOOKING

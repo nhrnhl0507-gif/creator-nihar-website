@@ -501,19 +501,27 @@
   const CNBookings = {
     // Record booking in Supabase
     createBooking: async (bookingData) => {
-      if (!supabaseClient) return null;
-      try {
-        const { data, error } = await supabaseClient
-          .from('bookings')
-          .insert([bookingData])
-          .select()
-          .single();
-
-        if (error) console.warn('createBooking warning:', error.message);
-        return data;
-      } catch (err) {
-        console.warn('createBooking catch:', err);
+      if (!supabaseClient) {
+        console.warn('CNBookings.createBooking: Supabase client not initialized.');
         return null;
+      }
+      try {
+        // Plain insert without forcing .select() returning representation,
+        // so that INSERT works reliably for all clients (authenticated users, clients, and guests)
+        // without requiring SELECT permissions on the newly inserted row.
+        const { error } = await supabaseClient
+          .from('bookings')
+          .insert([bookingData]);
+
+        if (error) {
+          console.error('CNBookings.createBooking database error:', error);
+          throw error;
+        }
+
+        return { success: true, booking_id: bookingData.booking_id };
+      } catch (err) {
+        console.error('CNBookings.createBooking catch error:', err);
+        throw err;
       }
     },
 

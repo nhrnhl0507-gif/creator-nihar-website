@@ -180,25 +180,28 @@ function initConsultationForm() {
       }
     }
 
-    // Record in Supabase bookings table (fire-and-forget)
+    // Record in Supabase bookings table
     try {
       if (window.CNBookings && typeof window.CNBookings.createBooking === 'function') {
         const randId = `CN-CS-${Date.now().toString().slice(-6)}`;
-        window.CNBookings.createBooking({
+        await window.CNBookings.createBooking({
           booking_id: randId,
           name: clientName,
           email: clientEmail,
           phone: whatsapp,
           service: selectedService,
-          project: businessName,
+          project: businessName || 'Not specified',
           details: `Topic: ${discussionTopic} | Details: ${projectDetails}`,
-          budget: expectedBudget,
+          budget: expectedBudget || 'To be discussed',
           deadline: `${preferredDate} at ${preferredTime} (${timeZone})`,
-          additional: additionalMessage,
+          additional: additionalMessage || 'None',
           status: 'pending'
         });
+        console.log('Consultation: Booking successfully recorded in Supabase:', randId);
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      console.warn('Consultation: Supabase booking recording warning:', e);
+    }
 
     // Smoothly transition to Success Screen (Section 7) after the browser dispatches POST
     setTimeout(() => {

@@ -237,6 +237,9 @@ create policy "Only admin can delete videos"
 -- 9. Reinforce RLS on public.bookings
 alter table public.bookings enable row level security;
 
+-- 1b. Clean up any dry-run/test records
+delete from public.bookings where booking_id in ('TEST-DRYRUN-001', 'DRYRUN-CHECK-002');
+
 drop policy if exists "Anyone can insert booking" on public.bookings;
 drop policy if exists "Users can view own bookings" on public.bookings;
 drop policy if exists "Admin can view all bookings" on public.bookings;
@@ -252,7 +255,8 @@ create policy "Users can view own bookings"
   on public.bookings for select
   to authenticated
   using (
-    email = (select p.email from public.profiles p where p.id = auth.uid())
+    lower(trim(email)) = lower(trim(coalesce(auth.jwt() ->> 'email', '')))
+    or lower(trim(email)) = lower(trim((select p.email from public.profiles p where p.id = auth.uid())))
     or public.is_admin()
   );
 
