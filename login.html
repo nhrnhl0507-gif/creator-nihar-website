@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Creator Nihar - Secure Access</title>
+  <meta name="description" content="Secure login to Creator Nihar. Access your account, AI Video Learning curriculum, and services.">
+
+  <!-- Favicon Configuration -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/images/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/images/favicon-96x96.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Main & Auth Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+
+  <!-- Supabase JS CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="auth-page-wrapper">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <a href="index.html" title="Back to Creator Nihar">
+          <img src="assets/images/logo.jpg" alt="Creator Nihar" class="auth-brand-logo">
+        </a>
+        <h1 class="auth-brand-title">Welcome Back</h1>
+        <p class="auth-brand-desc">Sign in to access your Creator Nihar account</p>
+      </div>
+
+      <div id="authAlert" class="auth-alert" style="display: none;"></div>
+
+      <form id="loginForm" autocomplete="on">
+        <div class="auth-form-group">
+          <label for="loginEmail">Email Address <span class="req">*</span></label>
+          <div class="auth-input-wrap">
+            <input type="email" id="loginEmail" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="loginPassword">Password <span class="req">*</span></label>
+          <div class="auth-input-wrap">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="auth-password-toggle" id="togglePasswordBtn" aria-label="Toggle password visibility">👁️</button>
+          </div>
+        </div>
+
+        <div class="auth-form-meta">
+          <label class="auth-checkbox-label">
+            <input type="checkbox" id="rememberMe" checked>
+            <span>Remember me</span>
+          </label>
+          <a href="forgot-password.html" class="auth-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn-auth-submit" id="loginSubmitBtn">
+          <span>Sign In</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Don't have an account yet? <a href="signup.html" class="auth-link">Create an account</a></p>
+        <p style="margin-top: 10px;">
+          <a href="index.html" class="auth-link" style="font-size: 0.82rem; color: var(--text-muted);">← Back to Creator Nihar Home</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Config & Logic -->
+  <script src="assets/js/supabase-config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const loginForm = document.getElementById('loginForm');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPassword = document.getElementById('loginPassword');
+      const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+      const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+      const authAlert = document.getElementById('authAlert');
+
+      // Check if already authenticated
+      const user = await window.CNAuth.getUser();
+      if (user) {
+        const isAdmin = await window.CNAuth.isAdmin();
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+
+        if (redirect === 'admin' && isAdmin) {
+          window.location.href = 'admin.html';
+        } else if (redirect) {
+          window.location.href = redirect;
+        } else if (isAdmin) {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+        return;
+      }
+
+      // Password visibility toggle
+      togglePasswordBtn.addEventListener('click', () => {
+        const type = loginPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        loginPassword.setAttribute('type', type);
+        togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🔒';
+      });
+
+      function showAlert(msg, type = 'error') {
+        authAlert.className = `auth-alert ${type}`;
+        authAlert.innerHTML = `<span>${msg}</span>`;
+        authAlert.style.display = 'flex';
+      }
+
+      // Handle submission
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        authAlert.style.display = 'none';
+
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value;
+
+        if (!email || !password) {
+          showAlert('Please fill in both email and password.');
+          return;
+        }
+
+        loginSubmitBtn.disabled = true;
+        loginSubmitBtn.innerHTML = `<span>Signing In...</span>`;
+
+        try {
+          const { user, session } = await window.CNAuth.signIn(email, password);
+
+          showAlert('Login successful! Redirecting...', 'success');
+
+          // Check admin status
+          const isAdmin = await window.CNAuth.isAdmin();
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirect = urlParams.get('redirect');
+
+          setTimeout(() => {
+            if (redirect === 'admin') {
+              window.location.href = isAdmin ? 'admin.html' : 'dashboard.html';
+            } else if (redirect) {
+              window.location.href = redirect;
+            } else if (isAdmin) {
+              window.location.href = 'admin.html';
+            } else {
+              window.location.href = 'dashboard.html';
+            }
+          }, 600);
+
+        } catch (err) {
+          console.error('Login error:', err);
+          let errMsg = err.message || 'Invalid login credentials.';
+          if (errMsg.includes('Invalid login credentials')) {
+            errMsg = 'Incorrect email or password. Please verify and try again.';
+          } else if (errMsg.includes('Email not confirmed')) {
+            errMsg = 'Please verify your email address before signing in.';
+          }
+          showAlert(errMsg, 'error');
+          loginSubmitBtn.disabled = false;
+          loginSubmitBtn.innerHTML = `<span>Sign In</span> <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,4 +1,8 @@
-﻿User-agent: *
+User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /dashboard.html
+Disallow: /reset-password.html
 
 Sitemap: https://creatornihar.co.in/sitemap.xml

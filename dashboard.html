@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard | Creator Nihar</title>
+  <meta name="description" content="Creator Nihar Member Dashboard - Manage your profile, access AI Video Learning lessons, and review your activity.">
+
+  <!-- Favicon Configuration -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/images/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/images/favicon-96x96.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+
+  <!-- Supabase JS CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background-color: var(--bg-page);">
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo-link" aria-label="Creator Nihar Home">
+        <img src="assets/images/logo.jpg" alt="Creator Nihar Logo" class="brand-logo-img">
+      </a>
+
+      <nav class="nav-menu" id="navMenu">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="learning.html" class="nav-link">AI Video Learning</a>
+        <a href="index.html#services" class="nav-link">Services</a>
+        <a href="index.html#pricing" class="nav-link">Pricing</a>
+        <a href="free-consultation.html" class="nav-link nav-link-consultation">Free Consultation</a>
+      </nav>
+
+      <div class="nav-actions">
+        <div class="nav-auth-actions" id="navAuthActions">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- DASHBOARD CONTENT -->
+  <main style="padding: 110px 20px 80px 20px;">
+    <div class="container" style="max-width: 1140px;">
+
+      <!-- Welcome Banner -->
+      <div style="background: linear-gradient(135deg, var(--brand-blue-dark) 0%, var(--brand-blue) 100%); border-radius: var(--radius-xl); padding: 36px 32px; color: #fff; box-shadow: var(--shadow-md); margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+        <div>
+          <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 700; margin-bottom: 10px;">
+            <span>✨</span> Member Portal
+          </div>
+          <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; margin-bottom: 6px;" id="welcomeHeading">
+            Welcome Back!
+          </h1>
+          <p style="color: rgba(255,255,255,0.85); font-size: 0.95rem;" id="userEmailText">
+            Loading profile information...
+          </p>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="learning.html" class="btn btn-primary" style="background: var(--brand-orange); border: none; box-shadow: 0 4px 14px rgba(245,112,30,0.35);">
+            <span>🎥 Watch AI Lessons</span>
+          </a>
+          <button type="button" class="btn btn-secondary" id="editProfileBtn" style="color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+            <span>✏️ Edit Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid: Profile Card & Quick Actions -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 32px;">
+
+        <!-- Profile Details Card -->
+        <div class="admin-panel-card" style="margin-bottom: 0;">
+          <h2 class="admin-panel-title" style="font-size: 1.15rem; margin-bottom: 16px;">👤 Account Information</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <tbody>
+              <tr>
+                <td style="padding: 10px 0; color: var(--text-muted); font-weight: 600; width: 40%;">Full Name</td>
+                <td style="padding: 10px 0; font-weight: 700; color: var(--text-primary);" id="profileName">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; color: var(--text-muted); font-weight: 600;">Email Address</td>
+                <td style="padding: 10px 0; font-weight: 600; color: var(--text-primary);" id="profileEmail">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; color: var(--text-muted); font-weight: 600;">Phone / WhatsApp</td>
+                <td style="padding: 10px 0; font-weight: 600; color: var(--text-primary);" id="profilePhone">Not specified</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; color: var(--text-muted); font-weight: 600;">Account Role</td>
+                <td style="padding: 10px 0;">
+                  <span class="badge-role-user" id="profileRoleBadge">Member</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; color: var(--text-muted); font-weight: 600;">Member Since</td>
+                <td style="padding: 10px 0; color: var(--text-secondary);" id="profileCreated">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Quick Access Card -->
+        <div class="admin-panel-card" style="margin-bottom: 0;">
+          <h2 class="admin-panel-title" style="font-size: 1.15rem; margin-bottom: 16px;">⚡ Quick Access</h2>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <a href="learning.html" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--brand-blue-light); border-radius: var(--radius-md); text-decoration: none; color: var(--brand-blue-dark); font-weight: 700; transition: transform var(--transition-fast);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.4rem;">🎓</span>
+                <div>
+                  <div style="font-size: 0.95rem;">AI Video Learning Curriculum</div>
+                  <div style="font-size: 0.78rem; font-weight: 500; color: var(--text-secondary);">Stream photorealistic video creation tutorials</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
+
+            <a href="free-consultation.html" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #fff7ed; border-radius: var(--radius-md); text-decoration: none; color: var(--brand-orange-hover); font-weight: 700; transition: transform var(--transition-fast);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.4rem;">📅</span>
+                <div>
+                  <div style="font-size: 0.95rem;">Request Free Zoom Consultation</div>
+                  <div style="font-size: 0.78rem; font-weight: 500; color: var(--text-secondary);">1-on-1 strategy meeting with Nihar Amrawat</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
+
+            <a href="index.html#contact" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #f0fdf4; border-radius: var(--radius-md); text-decoration: none; color: #15803d; font-weight: 700; transition: transform var(--transition-fast);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.4rem;">📋</span>
+                <div>
+                  <div style="font-size: 0.95rem;">Book a Project with Nihar</div>
+                  <div style="font-size: 0.78rem; font-weight: 500; color: var(--text-secondary);">AI Video Creation (₹1,500) or Website (₹20,000)</div>
+                </div>
+              </div>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Login Activity -->
+      <div class="admin-panel-card">
+        <h2 class="admin-panel-title" style="font-size: 1.15rem; margin-bottom: 16px;">🔐 Recent Login Activity</h2>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date &amp; Time (IST)</th>
+                <th>Device &amp; Browser</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="userLoginTableBody">
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading login records...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Edit Profile Modal -->
+  <div class="video-modal" id="editProfileModal">
+    <div class="video-modal-content" style="max-width: 480px; background: #fff; color: var(--text-primary); border-radius: var(--radius-lg); padding: 28px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--brand-blue-dark);">Edit Profile</h3>
+        <button type="button" id="closeEditModalBtn" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-muted);">✕</button>
+      </div>
+
+      <div id="modalAlert" class="auth-alert" style="display: none;"></div>
+
+      <form id="editProfileForm">
+        <div class="auth-form-group">
+          <label for="editName">Full Name <span class="req">*</span></label>
+          <input type="text" id="editName" class="auth-input" required>
+        </div>
+        <div class="auth-form-group">
+          <label for="editPhone">Phone / WhatsApp Number</label>
+          <input type="tel" id="editPhone" class="auth-input" placeholder="+91 7723913729">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="padding: 10px 18px;">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveProfileBtn" style="padding: 10px 22px;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Supabase Config & Dashboard Logic -->
+  <script src="assets/js/supabase-config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Verify Authentication
+      const user = await window.CNAuth.getUser();
+      if (!user) {
+        window.location.href = 'login.html?redirect=dashboard.html';
+        return;
+      }
+
+      // Check if Admin
+      const isAdmin = await window.CNAuth.isAdmin();
+      const profile = await window.CNAuth.getProfile(user.id);
+
+      const name = (profile && profile.name) ? profile.name : (user.user_metadata?.name || 'Member');
+      const email = user.email;
+      const phone = (profile && profile.phone) ? profile.phone : (user.user_metadata?.phone || 'Not specified');
+      const createdAt = profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent';
+
+      document.getElementById('welcomeHeading').textContent = `Welcome, ${name}!`;
+      document.getElementById('userEmailText').textContent = email;
+      document.getElementById('profileName').textContent = name;
+      document.getElementById('profileEmail').textContent = email;
+      document.getElementById('profilePhone').textContent = phone;
+      document.getElementById('profileCreated').textContent = createdAt;
+
+      if (isAdmin) {
+        const badge = document.getElementById('profileRoleBadge');
+        badge.className = 'badge-role-admin';
+        badge.innerHTML = 'Owner / Admin <a href="admin.html" style="margin-left: 6px; color: inherit; text-decoration: underline;">Open Admin Suite</a>';
+      }
+
+      // 2. Fetch User's Personal Login Activity
+      try {
+        const { data: activity, error } = await window.supabaseClient
+          .from('login_activity')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        const tbody = document.getElementById('userLoginTableBody');
+        if (activity && activity.length > 0) {
+          tbody.innerHTML = activity.map(item => `
+            <tr>
+              <td>${new Date(item.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</td>
+              <td>${escapeHtml(item.device_info || 'Web Browser')}</td>
+              <td><span class="badge-status-active">Successful</span></td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No recent login logs found.</td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        console.warn('Error fetching login activity:', err);
+      }
+
+      // 3. Edit Profile Modal
+      const editModal = document.getElementById('editProfileModal');
+      const editBtn = document.getElementById('editProfileBtn');
+      const closeBtn = document.getElementById('closeEditModalBtn');
+      const cancelBtn = document.getElementById('cancelEditBtn');
+      const editForm = document.getElementById('editProfileForm');
+      const editName = document.getElementById('editName');
+      const editPhone = document.getElementById('editPhone');
+      const modalAlert = document.getElementById('modalAlert');
+
+      editBtn.addEventListener('click', () => {
+        editName.value = name;
+        editPhone.value = phone === 'Not specified' ? '' : phone;
+        modalAlert.style.display = 'none';
+        editModal.classList.add('active');
+      });
+
+      const closeModal = () => editModal.classList.remove('active');
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+
+      editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const updatedName = editName.value.trim();
+        const updatedPhone = editPhone.value.trim();
+
+        if (!updatedName) return;
+
+        try {
+          const { error } = await window.supabaseClient
+            .from('profiles')
+            .update({ name: updatedName, phone: updatedPhone })
+            .eq('id', user.id);
+
+          if (error) throw error;
+
+          modalAlert.className = 'auth-alert success';
+          modalAlert.textContent = 'Profile updated successfully!';
+          modalAlert.style.display = 'block';
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 800);
+        } catch (err) {
+          modalAlert.className = 'auth-alert error';
+          modalAlert.textContent = err.message || 'Failed to update profile.';
+          modalAlert.style.display = 'block';
+        }
+      });
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+    });
+  </script>
+</body>
+</html>

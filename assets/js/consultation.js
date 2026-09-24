@@ -180,6 +180,26 @@ function initConsultationForm() {
       }
     }
 
+    // Record in Supabase bookings table (fire-and-forget)
+    try {
+      if (window.CNBookings && typeof window.CNBookings.createBooking === 'function') {
+        const randId = `CN-CS-${Date.now().toString().slice(-6)}`;
+        window.CNBookings.createBooking({
+          booking_id: randId,
+          name: clientName,
+          email: clientEmail,
+          phone: whatsapp,
+          service: selectedService,
+          project: businessName,
+          details: `Topic: ${discussionTopic} | Details: ${projectDetails}`,
+          budget: expectedBudget,
+          deadline: `${preferredDate} at ${preferredTime} (${timeZone})`,
+          additional: additionalMessage,
+          status: 'pending'
+        });
+      }
+    } catch (e) { /* ignore */ }
+
     // Smoothly transition to Success Screen (Section 7) after the browser dispatches POST
     setTimeout(() => {
       renderSuccessScreen(submissionData);

@@ -1832,6 +1832,25 @@
     if (!d.bookingId) d.bookingId = generateBookingId();
     const timestamp = getTimestamp();
 
+    // Record booking in Supabase database in background (fire-and-forget, zero blocking)
+    try {
+      if (window.CNBookings && typeof window.CNBookings.createBooking === 'function') {
+        window.CNBookings.createBooking({
+          booking_id: d.bookingId,
+          name: d.name,
+          email: d.email,
+          phone: d.phone,
+          service: d.service,
+          project: d.project,
+          details: d.details,
+          budget: d.budget,
+          deadline: d.deadline,
+          additional: d.additional,
+          status: 'pending'
+        });
+      }
+    } catch (e) { /* ignore */ }
+
     const emailSubject = `New Creator Nihar Service Booking - ${d.service} [${d.bookingId}]`;
     const emailBody = `NEW CREATOR NIHAR SERVICE BOOKING
 --------------------------------------------------

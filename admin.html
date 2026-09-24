@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Creator Nihar</title>
+  <meta name="description" content="Creator Nihar Owner Admin Portal - Manage registered users, login activity, and AI Video Learning lessons.">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Favicon Configuration -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/images/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/images/favicon-96x96.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+
+  <!-- Supabase JS CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-layout">
+
+  <!-- Loading Overlay -->
+  <div id="adminAuthLoading" style="position: fixed; inset: 0; background: #06284a; color: #fff; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
+    <div style="width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2); border-top-color: var(--brand-orange); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+    <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700;">Verifying Creator Nihar Owner Privileges...</div>
+  </div>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <!-- Access Denied Screen (Shown only if unauthorized user attempts access) -->
+  <div id="accessDeniedContainer" style="display: none;" class="access-denied-screen">
+    <div class="access-denied-card">
+      <div class="access-denied-icon">🚫</div>
+      <h1 class="access-denied-title">403 Forbidden</h1>
+      <p class="access-denied-desc">
+        Access to the Creator Nihar Admin Suite is strictly restricted to <strong>Nihar Amrawat (nhrnhl0507@gmail.com)</strong>.<br><br>
+        Your account does not possess owner-level privileges.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 12px;">
+        <a href="index.html" class="btn btn-secondary">Return to Website</a>
+        <button type="button" class="btn btn-primary" id="deniedLogoutBtn">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Admin Portal Container -->
+  <div id="adminPortalContainer" style="display: none; flex-direction: column; min-height: 100vh;">
+
+    <!-- TOPBAR -->
+    <header class="admin-topbar">
+      <div class="admin-topbar-brand">
+        <a href="index.html">
+          <img src="assets/images/logo.jpg" alt="Creator Nihar" class="admin-topbar-logo">
+        </a>
+        <div class="admin-topbar-title">
+          <span>Creator Nihar</span>
+          <span class="admin-verified-pill">● Verified Owner</span>
+        </div>
+      </div>
+
+      <div class="admin-topbar-user">
+        <div class="admin-owner-info">
+          <div class="admin-owner-name">Nihar Amrawat</div>
+          <div class="admin-owner-email" id="adminUserEmail">nhrnhl0507@gmail.com</div>
+        </div>
+        <a href="index.html" class="btn-admin-view-site" target="_blank" rel="noopener">
+          <span>Website ↗</span>
+        </a>
+        <button type="button" class="btn-auth-logout" id="adminLogoutBtn">
+          <span>Log Out</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <main class="admin-container">
+
+      <!-- Real Stats Grid -->
+      <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon stat-icon-users">👥</div>
+          <div class="admin-stat-content">
+            <h3>Registered Users</h3>
+            <div class="stat-number" id="statUsersCount">0</div>
+            <div class="stat-label">Real database accounts</div>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon stat-icon-logins">🔐</div>
+          <div class="admin-stat-content">
+            <h3>Login Events</h3>
+            <div class="stat-number" id="statLoginsCount">0</div>
+            <div class="stat-label">Total recorded sessions</div>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon stat-icon-videos">🎥</div>
+          <div class="admin-stat-content">
+            <h3>AI Video Lessons</h3>
+            <div class="stat-number" id="statVideosCount">0</div>
+            <div class="stat-label" id="statVideosSubLabel">0 Published</div>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon stat-icon-bookings">📋</div>
+          <div class="admin-stat-content">
+            <h3>Client Bookings</h3>
+            <div class="stat-number" id="statBookingsCount">0</div>
+            <div class="stat-label">Shiva &amp; Consultation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="admin-tabs-nav">
+        <button type="button" class="admin-tab-btn active" data-tab="tab-overview">
+          <span>📊 Overview</span>
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tab-users">
+          <span>👥 User Accounts</span>
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tab-activity">
+          <span>🔐 Login Activity</span>
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tab-videos">
+          <span>🎥 Video Management</span>
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tab-bookings">
+          <span>📋 Client Bookings</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: OVERVIEW -->
+      <div class="admin-tab-pane active" id="tab-overview">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 24px;">
+
+          <!-- Recent Users Preview -->
+          <div class="admin-panel-card">
+            <div class="admin-panel-header">
+              <h2 class="admin-panel-title">Recent User Registrations</h2>
+              <button type="button" class="btn btn-secondary" onclick="switchTab('tab-users')" style="font-size: 0.82rem; padding: 6px 12px;">View All →</button>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Joined</th>
+                    <th>Role</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewUsersTableBody">
+                  <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Logins Preview -->
+          <div class="admin-panel-card">
+            <div class="admin-panel-header">
+              <h2 class="admin-panel-title">Latest Login Events</h2>
+              <button type="button" class="btn btn-secondary" onclick="switchTab('tab-activity')" style="font-size: 0.82rem; padding: 6px 12px;">View All →</button>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Device</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewLoginsTableBody">
+                  <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: USERS MANAGEMENT -->
+      <div class="admin-tab-pane" id="tab-users">
+        <div class="admin-panel-card">
+          <div class="admin-panel-header">
+            <div>
+              <h2 class="admin-panel-title">Registered User Accounts</h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Real accounts registered through Creator Nihar</p>
+            </div>
+            <div class="admin-actions-bar">
+              <input type="text" id="userSearchInput" class="auth-input" placeholder="Search by name or email..." style="width: 260px; padding: 8px 12px; font-size: 0.88rem;">
+            </div>
+          </div>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Registered Date</th>
+                  <th>Last Login</th>
+                  <th>Status</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading registered users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: LOGIN ACTIVITY -->
+      <div class="admin-tab-pane" id="tab-activity">
+        <div class="admin-panel-card">
+          <div class="admin-panel-header">
+            <div>
+              <h2 class="admin-panel-title">Login Activity Audit Log</h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Audited successful login timestamps and client device info</p>
+            </div>
+            <button type="button" class="btn btn-secondary" id="refreshLoginsBtn" style="font-size: 0.82rem; padding: 6px 12px;">↻ Refresh Logs</button>
+          </div>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Event ID</th>
+                  <th>User ID</th>
+                  <th>Email Reference</th>
+                  <th>Device &amp; Browser</th>
+                  <th>Timestamp (IST)</th>
+                </tr>
+              </thead>
+              <tbody id="loginsTableBody">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading login activity log...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: VIDEO MANAGEMENT -->
+      <div class="admin-tab-pane" id="tab-videos">
+        <div class="admin-panel-card">
+          <div class="admin-panel-header">
+            <div>
+              <h2 class="admin-panel-title">AI Video Learning Management</h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Upload, edit, publish, and curate lessons for authenticated students</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="openAddVideoModalBtn" style="background: var(--brand-orange); border: none;">
+              <span>+ Add / Upload Video</span>
+            </button>
+          </div>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Lesson #</th>
+                  <th>Thumbnail</th>
+                  <th>Title &amp; Category</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="videosTableBody">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading video lessons...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: CLIENT BOOKINGS -->
+      <div class="admin-tab-pane" id="tab-bookings">
+        <div class="admin-panel-card">
+          <div class="admin-panel-header">
+            <div>
+              <h2 class="admin-panel-title">Client Bookings &amp; Service Inquiries</h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Customer service requests submitted via Shiva AI and website consultation</p>
+            </div>
+            <button type="button" class="btn btn-secondary" id="refreshBookingsBtn" style="font-size: 0.82rem; padding: 6px 12px;">↻ Refresh Bookings</button>
+          </div>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Client Name</th>
+                  <th>Contact</th>
+                  <th>Service</th>
+                  <th>Budget</th>
+                  <th>Deadline</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="bookingsTableBody">
+                <tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading bookings...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ADD / EDIT VIDEO MODAL -->
+  <div class="video-modal" id="videoModal">
+    <div class="video-modal-content" style="max-width: 680px; background: #fff; color: var(--text-primary); border-radius: var(--radius-lg); padding: 30px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--brand-blue-dark);" id="videoModalHeading">
+          Add New AI Video Lesson
+        </h3>
+        <button type="button" id="closeVideoModalBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">✕</button>
+      </div>
+
+      <div id="videoModalAlert" class="auth-alert" style="display: none;"></div>
+
+      <form id="videoForm">
+        <input type="hidden" id="videoId" value="">
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+          <div class="auth-form-group">
+            <label for="videoLessonNumber">Lesson # <span class="req">*</span></label>
+            <input type="number" id="videoLessonNumber" class="auth-input" min="1" value="1" required>
+          </div>
+          <div class="auth-form-group">
+            <label for="videoCategory">Category <span class="req">*</span></label>
+            <select id="videoCategory" class="auth-input" required>
+              <option value="AI Video Creation">AI Video Creation</option>
+              <option value="AI Website Development">AI Website Development</option>
+              <option value="Prompts & Strategy">Prompts &amp; Strategy</option>
+              <option value="General AI Tools">General AI Tools</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="videoTitle">Video Title <span class="req">*</span></label>
+          <input type="text" id="videoTitle" class="auth-input" placeholder="e.g. Mastering Photorealistic AI Video Prompts" required>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="videoDescription">Description</label>
+          <textarea id="videoDescription" class="auth-input" rows="3" placeholder="Brief outline of topics covered in this lesson..."></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+          <div class="auth-form-group">
+            <label for="videoUrl">Video Stream URL or Direct File Link <span class="req">*</span></label>
+            <input type="url" id="videoUrl" class="auth-input" placeholder="https://... or upload below" required>
+          </div>
+          <div class="auth-form-group">
+            <label for="videoDuration">Duration</label>
+            <input type="text" id="videoDuration" class="auth-input" placeholder="12:45" value="10:00">
+          </div>
+        </div>
+
+        <!-- Video File Direct Upload to Supabase Storage -->
+        <div class="auth-form-group" style="background: var(--bg-page); padding: 14px; border-radius: var(--radius-md); border: 1.5px dashed var(--border-light);">
+          <label style="font-weight: 700; color: var(--brand-blue);">📤 Direct File Upload to Supabase Storage ('videos' bucket)</label>
+          <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/quicktime" style="margin-top: 6px; font-size: 0.85rem;">
+          <div id="videoUploadProgress" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;"></div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="videoThumbnailUrl">Thumbnail Image URL</label>
+          <input type="url" id="videoThumbnailUrl" class="auth-input" placeholder="https://... or upload thumbnail below">
+        </div>
+
+        <!-- Thumbnail Direct Upload to Supabase Storage -->
+        <div class="auth-form-group" style="background: var(--bg-page); padding: 14px; border-radius: var(--radius-md); border: 1.5px dashed var(--border-light);">
+          <label style="font-weight: 700; color: var(--brand-blue);">🖼️ Direct Thumbnail Upload ('thumbnails' bucket)</label>
+          <input type="file" id="thumbFileInput" accept="image/*" style="margin-top: 6px; font-size: 0.85rem;">
+          <div id="thumbUploadProgress" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;"></div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="videoTags">Tags (Comma separated)</label>
+          <input type="text" id="videoTags" class="auth-input" placeholder="AI Video, Prompts, Animation">
+        </div>
+
+        <div class="auth-form-meta" style="margin: 20px 0;">
+          <label class="auth-checkbox-label">
+            <input type="checkbox" id="videoIsPublished" checked>
+            <span style="font-weight: 700; color: var(--brand-blue-dark);">Publish Immediately (Visible to authenticated students)</span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" id="cancelVideoModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveVideoBtn" style="background: var(--brand-blue);">
+            <span>Save Lesson</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Supabase Config & Admin Engine -->
+  <script src="assets/js/supabase-config.js"></script>
+  <script>
+    let allUsersCache = [];
+    let allVideosCache = [];
+    let allBookingsCache = [];
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+      });
+      document.querySelectorAll('.admin-tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === tabId);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const loadingOverlay = document.getElementById('adminAuthLoading');
+      const accessDeniedContainer = document.getElementById('accessDeniedContainer');
+      const adminPortalContainer = document.getElementById('adminPortalContainer');
+
+      // 1. Check Authentication & Verify Admin Role
+      const user = await window.CNAuth.getUser();
+      if (!user) {
+        window.location.href = 'login.html?redirect=admin';
+        return;
+      }
+
+      const isAdmin = await window.CNAuth.isAdmin();
+
+      loadingOverlay.style.display = 'none';
+
+      if (!isAdmin) {
+        // Forbidden: Not authorized
+        accessDeniedContainer.style.display = 'flex';
+        document.getElementById('deniedLogoutBtn').addEventListener('click', async () => {
+          await window.CNAuth.signOut();
+        });
+        return;
+      }
+
+      // Authorized Owner: Render Admin Portal
+      adminPortalContainer.style.display = 'flex';
+      document.getElementById('adminUserEmail').textContent = user.email;
+
+      // Logout handler
+      document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
+        if (confirm('Log out of Creator Nihar Owner Suite?')) {
+          await window.CNAuth.signOut();
+        }
+      });
+
+      // Tab switcher binding
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-tab');
+          switchTab(target);
+        });
+      });
+
+      // Load Real Data
+      await loadAdminDashboardData();
+
+      // User search filter
+      document.getElementById('userSearchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const filtered = allUsersCache.filter(u =>
+          (u.name && u.name.toLowerCase().includes(query)) ||
+          (u.email && u.email.toLowerCase().includes(query)) ||
+          (u.id && u.id.toLowerCase().includes(query))
+        );
+        renderUsersTable(filtered);
+      });
+
+      document.getElementById('refreshLoginsBtn').addEventListener('click', loadLoginActivity);
+      document.getElementById('refreshBookingsBtn').addEventListener('click', loadBookings);
+
+      // Video Modal logic
+      initVideoModal();
+    });
+
+    async function loadAdminDashboardData() {
+      await Promise.all([
+        loadStats(),
+        loadUsers(),
+        loadLoginActivity(),
+        loadVideos(),
+        loadBookings()
+      ]);
+    }
+
+    async function loadStats() {
+      try {
+        const stats = await window.CNAdmin.getDashboardStats();
+        document.getElementById('statUsersCount').textContent = stats.users;
+        document.getElementById('statLoginsCount').textContent = stats.logins;
+        document.getElementById('statVideosCount').textContent = stats.videos;
+        document.getElementById('statBookingsCount').textContent = stats.bookings;
+      } catch (e) {
+        console.error('loadStats error:', e);
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const users = await window.CNAdmin.getAllUsers();
+        allUsersCache = users;
+        renderUsersTable(users);
+
+        // Render preview in overview tab
+        const preview = users.slice(0, 5);
+        const overviewTbody = document.getElementById('overviewUsersTableBody');
+        if (preview.length > 0) {
+          overviewTbody.innerHTML = preview.map(u => `
+            <tr>
+              <td><strong>${escapeHtml(u.name || 'Unnamed')}</strong></td>
+              <td>${escapeHtml(u.email)}</td>
+              <td>${formatDate(u.created_at)}</td>
+              <td><span class="${u.role === 'admin' ? 'badge-role-admin' : 'badge-role-user'}">${u.role}</span></td>
+            </tr>
+          `).join('');
+        } else {
+          overviewTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>`;
+        }
+      } catch (e) {
+        console.error('loadUsers error:', e);
+      }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('usersTableBody');
+      if (!users || users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">No registered accounts match your criteria.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);" title="${u.id}">${u.id.substring(0, 8)}...</td>
+          <td><strong>${escapeHtml(u.name || '-')}</strong></td>
+          <td>${escapeHtml(u.email)}</td>
+          <td>${escapeHtml(u.phone || 'None')}</td>
+          <td>${formatDate(u.created_at)}</td>
+          <td>${u.last_login ? formatDateTime(u.last_login) : 'Never'}</td>
+          <td>
+            <select onchange="changeUserStatus('${u.id}', this.value)" style="padding: 3px 6px; font-size: 0.78rem; border-radius: 4px; border: 1px solid var(--border-light);">
+              <option value="active" ${u.status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="suspended" ${u.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+              <option value="inactive" ${u.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+            </select>
+          </td>
+          <td><span class="${u.role === 'admin' ? 'badge-role-admin' : 'badge-role-user'}">${u.role}</span></td>
+          <td>
+            <button type="button" class="btn-table-action" onclick="copyToClipboard('${u.id}')" title="Copy User ID">📋 ID</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function changeUserStatus(userId, newStatus) {
+      try {
+        await window.CNAdmin.updateUserStatus(userId, newStatus);
+        alert('User status updated to ' + newStatus);
+      } catch (err) {
+        alert('Error updating status: ' + err.message);
+      }
+    }
+
+    async function loadLoginActivity() {
+      try {
+        const logins = await window.CNAdmin.getLoginActivity(50);
+        const tbody = document.getElementById('loginsTableBody');
+        const overviewTbody = document.getElementById('overviewLoginsTableBody');
+
+        if (!logins || logins.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No login activity recorded yet.</td></tr>`;
+          overviewTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No login events yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = logins.map(l => `
+          <tr>
+            <td style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">${l.id.substring(0, 8)}...</td>
+            <td style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">${l.user_id.substring(0, 8)}...</td>
+            <td><strong>${escapeHtml(l.email)}</strong></td>
+            <td>${escapeHtml(l.device_info || 'Unknown Device')}</td>
+            <td>${formatDateTime(l.created_at)}</td>
+          </tr>
+        `).join('');
+
+        // Overview preview (first 5)
+        overviewTbody.innerHTML = logins.slice(0, 5).map(l => `
+          <tr>
+            <td><strong>${escapeHtml(l.email)}</strong></td>
+            <td>${escapeHtml(l.device_info || 'Web')}</td>
+            <td>${formatDateTime(l.created_at)}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('loadLoginActivity error:', e);
+      }
+    }
+
+    async function loadVideos() {
+      try {
+        const videos = await window.CNVideos.getAllVideos();
+        allVideosCache = videos;
+        const tbody = document.getElementById('videosTableBody');
+
+        const publishedCount = videos.filter(v => v.is_published).length;
+        document.getElementById('statVideosSubLabel').textContent = `${publishedCount} Published`;
+
+        if (!videos || videos.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">No video lessons added yet. Click "+ Add / Upload Video" above.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = videos.map(v => `
+          <tr>
+            <td style="font-weight: 800; color: var(--brand-blue-dark); text-align: center;">#${v.lesson_number}</td>
+            <td>
+              <div style="width: 72px; aspect-ratio: 16/9; background: #000; border-radius: 4px; overflow: hidden;">
+                ${v.thumbnail_url ? `<img src="${escapeHtml(v.thumbnail_url)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'">` : '<div style="color: #666; font-size: 0.65rem; text-align: center; line-height: 40px;">No Thumb</div>'}
+              </div>
+            </td>
+            <td>
+              <strong>${escapeHtml(v.title)}</strong>
+              <div style="font-size: 0.75rem; color: var(--brand-orange); font-weight: 700; margin-top: 2px;">${escapeHtml(v.category)}</div>
+            </td>
+            <td>${escapeHtml(v.duration || '10:00')}</td>
+            <td>
+              <span class="${v.is_published ? 'badge-status-published' : 'badge-status-draft'}">
+                ${v.is_published ? 'Published ✓' : 'Draft 🔒'}
+              </span>
+            </td>
+            <td>${formatDate(v.created_at)}</td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="btn-table-action" onclick="togglePublishVideo('${v.id}', ${v.is_published})">
+                  ${v.is_published ? 'Unpublish' : 'Publish'}
+                </button>
+                <button type="button" class="btn-table-action" onclick="editVideo('${v.id}')">✏️ Edit</button>
+                <button type="button" class="btn-table-action btn-table-delete" onclick="deleteVideo('${v.id}')">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('loadVideos error:', e);
+      }
+    }
+
+    async function togglePublishVideo(id, currentStatus) {
+      try {
+        await window.CNVideos.togglePublish(id, currentStatus);
+        await loadVideos();
+        await loadStats();
+      } catch (err) {
+        alert('Error changing status: ' + err.message);
+      }
+    }
+
+    async function deleteVideo(id) {
+      if (!confirm('Are you sure you want to delete this video lesson? This action cannot be undone.')) return;
+      try {
+        await window.CNVideos.deleteVideo(id);
+        await loadVideos();
+        await loadStats();
+      } catch (err) {
+        alert('Error deleting video: ' + err.message);
+      }
+    }
+
+    function editVideo(id) {
+      const v = allVideosCache.find(item => item.id === id);
+      if (!v) return;
+
+      document.getElementById('videoModalHeading').textContent = 'Edit Video Lesson #' + v.lesson_number;
+      document.getElementById('videoId').value = v.id;
+      document.getElementById('videoLessonNumber').value = v.lesson_number;
+      document.getElementById('videoCategory').value = v.category;
+      document.getElementById('videoTitle').value = v.title;
+      document.getElementById('videoDescription').value = v.description || '';
+      document.getElementById('videoUrl').value = v.video_url;
+      document.getElementById('videoDuration').value = v.duration || '10:00';
+      document.getElementById('videoThumbnailUrl').value = v.thumbnail_url || '';
+      document.getElementById('videoTags').value = Array.isArray(v.tags) ? v.tags.join(', ') : '';
+      document.getElementById('videoIsPublished').checked = v.is_published;
+
+      document.getElementById('videoModalAlert').style.display = 'none';
+      document.getElementById('videoModal').classList.add('active');
+    }
+
+    function initVideoModal() {
+      const modal = document.getElementById('videoModal');
+      const openBtn = document.getElementById('openAddVideoModalBtn');
+      const closeBtn = document.getElementById('closeVideoModalBtn');
+      const cancelBtn = document.getElementById('cancelVideoModalBtn');
+      const form = document.getElementById('videoForm');
+      const alertBox = document.getElementById('videoModalAlert');
+
+      const videoFileInput = document.getElementById('videoFileInput');
+      const thumbFileInput = document.getElementById('thumbFileInput');
+      const videoProgress = document.getElementById('videoUploadProgress');
+      const thumbProgress = document.getElementById('thumbUploadProgress');
+
+      openBtn.addEventListener('click', () => {
+        form.reset();
+        document.getElementById('videoId').value = '';
+        document.getElementById('videoModalHeading').textContent = 'Add New AI Video Lesson';
+        document.getElementById('videoLessonNumber').value = (allVideosCache.length + 1);
+        document.getElementById('videoIsPublished').checked = true;
+        alertBox.style.display = 'none';
+        modal.classList.add('active');
+      });
+
+      const closeModal = () => modal.classList.remove('active');
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+
+      // Handle Direct File Upload for Video
+      videoFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        videoProgress.textContent = `Uploading ${file.name} to Supabase Storage ('videos' bucket)...`;
+        try {
+          const publicOrSignedUrl = await window.CNVideos.uploadVideoFile(file);
+          document.getElementById('videoUrl').value = publicOrSignedUrl;
+          videoProgress.innerHTML = `<span style="color: #16a34a; font-weight: 700;">✓ Uploaded successfully! Stream URL generated.</span>`;
+        } catch (err) {
+          console.error(err);
+          videoProgress.innerHTML = `<span style="color: #dc2626;">Upload failed: ${err.message}</span>`;
+        }
+      });
+
+      // Handle Direct Thumbnail Upload
+      thumbFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        thumbProgress.textContent = `Uploading ${file.name} to 'thumbnails' bucket...`;
+        try {
+          const thumbUrl = await window.CNVideos.uploadThumbnailFile(file);
+          document.getElementById('videoThumbnailUrl').value = thumbUrl;
+          thumbProgress.innerHTML = `<span style="color: #16a34a; font-weight: 700;">✓ Thumbnail uploaded!</span>`;
+        } catch (err) {
+          console.error(err);
+          thumbProgress.innerHTML = `<span style="color: #dc2626;">Thumbnail upload failed: ${err.message}</span>`;
+        }
+      });
+
+      // Save Form Submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.style.display = 'none';
+
+        const id = document.getElementById('videoId').value;
+        const lessonNumber = parseInt(document.getElementById('videoLessonNumber').value, 10);
+        const category = document.getElementById('videoCategory').value;
+        const title = document.getElementById('videoTitle').value.trim();
+        const description = document.getElementById('videoDescription').value.trim();
+        const videoUrl = document.getElementById('videoUrl').value.trim();
+        const duration = document.getElementById('videoDuration').value.trim();
+        const thumbnailUrl = document.getElementById('videoThumbnailUrl').value.trim();
+        const rawTags = document.getElementById('videoTags').value;
+        const isPublished = document.getElementById('videoIsPublished').checked;
+
+        const tags = rawTags.split(',').map(t => t.trim()).filter(Boolean);
+
+        const payload = {
+          lesson_number: lessonNumber,
+          category: category,
+          title: title,
+          description: description,
+          video_url: videoUrl,
+          duration: duration,
+          thumbnail_url: thumbnailUrl,
+          tags: tags,
+          is_published: isPublished
+        };
+
+        const saveBtn = document.getElementById('saveVideoBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<span>Saving...</span>`;
+
+        try {
+          if (id) {
+            await window.CNVideos.updateVideo(id, payload);
+          } else {
+            await window.CNVideos.createVideo(payload);
+          }
+
+          closeModal();
+          await loadVideos();
+          await loadStats();
+        } catch (err) {
+          alertBox.className = 'auth-alert error';
+          alertBox.textContent = err.message || 'Error saving video.';
+          alertBox.style.display = 'block';
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = `<span>Save Lesson</span>`;
+        }
+      });
+    }
+
+    async function loadBookings() {
+      try {
+        const bookings = await window.CNBookings.getAllBookings();
+        allBookingsCache = bookings;
+        const tbody = document.getElementById('bookingsTableBody');
+
+        if (!bookings || bookings.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">No bookings recorded in database yet. New bookings submitted via Shiva AI will automatically appear here.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = bookings.map(b => `
+          <tr>
+            <td style="font-family: monospace; font-size: 0.78rem; font-weight: 700; color: var(--brand-blue);">${escapeHtml(b.booking_id)}</td>
+            <td><strong>${escapeHtml(b.name)}</strong></td>
+            <td>
+              <div>${escapeHtml(b.email)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(b.phone || '-')}</div>
+            </td>
+            <td><span class="badge-role-user">${escapeHtml(b.service)}</span></td>
+            <td>${escapeHtml(b.budget || '-')}</td>
+            <td>${escapeHtml(b.deadline || '-')}</td>
+            <td>
+              <select onchange="updateBookingStatus('${b.id}', this.value)" style="padding: 2px 6px; font-size: 0.78rem; border-radius: 4px; border: 1px solid var(--border-light);">
+                <option value="pending" ${b.status === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="confirmed" ${b.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                <option value="in_progress" ${b.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                <option value="completed" ${b.status === 'completed' ? 'selected' : ''}>Completed</option>
+                <option value="cancelled" ${b.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+            </td>
+            <td>${formatDate(b.created_at)}</td>
+            <td>
+              <button type="button" class="btn-table-action" onclick="alert('Project: ${escapeHtml(b.project || '')}\\n\\nDetails: ${escapeHtml(b.details || '')}\\n\\nAdditional: ${escapeHtml(b.additional || '')}')">View</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('loadBookings error:', e);
+      }
+    }
+
+    async function updateBookingStatus(id, newStatus) {
+      try {
+        await window.CNBookings.updateStatus(id, newStatus);
+        alert('Booking status updated to ' + newStatus);
+      } catch (err) {
+        alert('Error updating status: ' + err.message);
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function formatDateTime(dateStr) {
+      if (!dateStr) return '-';
+      return new Date(dateStr).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' IST';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text);
+      alert('Copied to clipboard: ' + text);
+    }
+  </script>
+</body>
+</html>

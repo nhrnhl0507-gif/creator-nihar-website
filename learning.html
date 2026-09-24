@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Video Learning Hub | Creator Nihar</title>
+  <meta name="description" content="Master AI video creation, prompt engineering, and modern digital development with step-by-step tutorials from Creator Nihar.">
+
+  <!-- Favicon Configuration -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/images/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/images/favicon-96x96.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+
+  <!-- Supabase JS CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background-color: var(--bg-page);">
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo-link" aria-label="Creator Nihar Home">
+        <img src="assets/images/logo.jpg" alt="Creator Nihar Logo" class="brand-logo-img">
+      </a>
+
+      <nav class="nav-menu" id="navMenu">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="learning.html" class="nav-link active">AI Video Learning</a>
+        <a href="index.html#services" class="nav-link">Services</a>
+        <a href="index.html#pricing" class="nav-link">Pricing</a>
+        <a href="free-consultation.html" class="nav-link nav-link-consultation">Free Consultation</a>
+      </nav>
+
+      <div class="nav-actions">
+        <div class="nav-auth-actions" id="navAuthActions">
+          <!-- Dynamically populated by Supabase Auth state -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LEARNING PORTAL -->
+  <main style="padding-top: 100px;">
+
+    <!-- Hero Header -->
+    <section class="learning-section" style="padding-top: 40px; padding-bottom: 20px;">
+      <div class="container">
+        <div class="learning-header">
+          <div class="learning-badge">
+            <span>✨</span> Exclusive Video Curriculum
+          </div>
+          <h1 class="learning-title">
+            AI Video Creation &amp; Digital Development <span class="gradient-span">Masterclasses</span>
+          </h1>
+          <p class="learning-subtitle">
+            Curated, practical video tutorials on generating photorealistic AI video assets, cinematic prompts, and cutting-edge digital development by Founder Nihar Amrawat.
+          </p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="learning-filters">
+          <button type="button" class="filter-btn active" data-category="All">All Lessons</button>
+          <button type="button" class="filter-btn" data-category="AI Video Creation">AI Video Creation</button>
+          <button type="button" class="filter-btn" data-category="AI Website Development">AI Website Development</button>
+          <button type="button" class="filter-btn" data-category="Prompts & Strategy">Prompts &amp; Strategy</button>
+        </div>
+
+        <!-- Authenticated Lessons Container -->
+        <div id="authLessonsContainer" style="display: none;">
+          <div class="videos-grid" id="videosGrid">
+            <!-- Dynamic Video Cards inserted here -->
+          </div>
+        </div>
+
+        <!-- Unauthenticated Locked Banner -->
+        <div id="guestLockedBanner" style="display: none;">
+          <div class="learning-locked-banner">
+            <div class="locked-icon-badge">🔒</div>
+            <h2 class="locked-title">Protected Member Content</h2>
+            <p class="locked-desc">
+              All full-length AI Video Creation lessons and practical workflows are reserved for verified Creator Nihar members. Sign up or log in to stream all published lessons instantly.
+            </p>
+            <div class="locked-actions">
+              <a href="login.html?redirect=learning.html" class="btn btn-primary" style="background: var(--brand-orange); border: none; padding: 12px 28px;">
+                <span>Sign In to Access</span>
+              </a>
+              <a href="signup.html" class="btn btn-secondary" style="color: #fff; border-color: rgba(255,255,255,0.4); padding: 12px 28px;">
+                <span>Create Free Account</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Preview curriculum outline -->
+          <div style="margin-top: 50px;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--brand-blue-dark); text-align: center; margin-bottom: 24px;">
+              Curriculum Lessons Preview
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+              <div style="background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 22px; position: relative;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--brand-orange); text-transform: uppercase;">Lesson 1 • Video Creation</span>
+                <h4 style="font-size: 1.05rem; font-weight: 700; margin: 8px 0; color: var(--brand-blue-dark);">Mastering Photorealistic AI Video Prompts</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Learn cinematic prompt structures, lighting variables, camera motion commands, and pacing for commercial client work.</p>
+                <div style="margin-top: 14px; font-size: 0.8rem; font-weight: 600; color: var(--brand-blue);">🔒 Log in to watch (12:45)</div>
+              </div>
+              <div style="background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 22px; position: relative;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--brand-orange); text-transform: uppercase;">Lesson 2 • Sound & Voice</span>
+                <h4 style="font-size: 1.05rem; font-weight: 700; margin: 8px 0; color: var(--brand-blue-dark);">Voice Cloning, Sound Design & Audio Sync</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Complete guide to professional voiceovers, studio background score balancing, and emotion matching.</p>
+                <div style="margin-top: 14px; font-size: 0.8rem; font-weight: 600; color: var(--brand-blue);">🔒 Log in to watch (15:20)</div>
+              </div>
+              <div style="background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 22px; position: relative;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--brand-orange); text-transform: uppercase;">Lesson 3 • Web Development</span>
+                <h4 style="font-size: 1.05rem; font-weight: 700; margin: 8px 0; color: var(--brand-blue-dark);">Building High-Converting Portfolio Websites</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Modern responsive architecture, semantic schemas, fast loading animations, and automated client booking forms.</p>
+                <div style="margin-top: 14px; font-size: 0.8rem; font-weight: 600; color: var(--brand-blue);">🔒 Log in to watch (18:10)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- VIDEO PLAYER MODAL -->
+  <div class="video-modal" id="playerModal">
+    <div class="video-modal-content">
+      <div class="video-modal-header">
+        <h3 class="video-modal-title" id="playerModalTitle">Loading Lesson...</h3>
+        <button type="button" class="video-modal-close" id="closePlayerBtn">✕</button>
+      </div>
+      <div class="video-player-frame">
+        <video id="html5VideoPlayer" controls controlsList="nodownload" preload="metadata">
+          <source src="" type="video/mp4" id="videoSource">
+          Your browser does not support HTML5 video streaming.
+        </video>
+      </div>
+      <div class="video-modal-footer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-weight: 700; color: var(--brand-orange); font-size: 0.85rem;" id="playerCategoryTag">AI Video Creation</span>
+          <span style="font-size: 0.8rem; color: #94a3b8;" id="playerDurationText">Duration: 10:00</span>
+        </div>
+        <p id="playerDescriptionText" style="line-height: 1.5; font-size: 0.9rem;">
+          Lesson overview and notes will be displayed here.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Config & Learning Engine -->
+  <script src="assets/js/supabase-config.js"></script>
+  <script>
+    let publishedVideosCache = [];
+    let currentCategory = 'All';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.CNAuth.getUser();
+      const authContainer = document.getElementById('authLessonsContainer');
+      const lockedBanner = document.getElementById('guestLockedBanner');
+
+      if (!user) {
+        // Unauthenticated User: Show Locked Banner and Curriculum Teaser
+        lockedBanner.style.display = 'block';
+        authContainer.style.display = 'none';
+        return;
+      }
+
+      // Authenticated User: Load Real Published Videos from Supabase
+      authContainer.style.display = 'block';
+      lockedBanner.style.display = 'none';
+
+      await loadPublishedVideos();
+
+      // Category filter buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentCategory = btn.getAttribute('data-category');
+          filterAndRenderVideos();
+        });
+      });
+
+      // Video Player Modal Binding
+      initPlayerModal();
+    });
+
+    async function loadPublishedVideos() {
+      const grid = document.getElementById('videosGrid');
+      grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">Streaming lessons from Supabase database...</div>`;
+
+      try {
+        const videos = await window.CNVideos.getPublishedVideos();
+        publishedVideosCache = videos;
+        filterAndRenderVideos();
+      } catch (err) {
+        console.error('Error fetching published lessons:', err);
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ef4444; padding: 40px;">Unable to load video lessons. Please verify connection.</div>`;
+      }
+    }
+
+    function filterAndRenderVideos() {
+      const grid = document.getElementById('videosGrid');
+      let filtered = publishedVideosCache;
+
+      if (currentCategory !== 'All') {
+        filtered = publishedVideosCache.filter(v => v.category === currentCategory);
+      }
+
+      if (!filtered || filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 50px 20px;">
+            <div style="font-size: 2.2rem; margin-bottom: 12px;">🎥</div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: var(--brand-blue-dark);">No Published Lessons In This Category Yet</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 480px; margin: 8px auto 0 auto;">Founder Nihar Amrawat is curating and recording upcoming lessons. Check back soon or select another category above!</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(v => `
+        <div class="video-card">
+          <div class="video-card-thumb-wrap">
+            <img src="${escapeHtml(v.thumbnail_url || 'assets/images/logo.jpg')}" alt="${escapeHtml(v.title)}" class="video-card-thumb" onerror="this.src='assets/images/logo.jpg'">
+            <div class="video-play-overlay">
+              <button type="button" class="video-play-btn" onclick="openVideoPlayer('${v.id}')" aria-label="Play Lesson">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+            </div>
+            <span class="video-lesson-badge">Lesson #${v.lesson_number}</span>
+            <span class="video-duration-badge">${escapeHtml(v.duration || '10:00')}</span>
+          </div>
+
+          <div class="video-card-body">
+            <div class="video-category-tag">${escapeHtml(v.category)}</div>
+            <h3 class="video-card-title">${escapeHtml(v.title)}</h3>
+            <p class="video-card-desc">${escapeHtml(v.description || 'Step-by-step masterclass tutorial.')}</p>
+
+            <div class="video-card-footer">
+              <div class="video-tags">
+                ${Array.isArray(v.tags) && v.tags.length > 0 ? v.tags.map(t => `<span class="video-tag">#${escapeHtml(t)}</span>`).join('') : '<span class="video-tag">#CreatorNihar</span>'}
+              </div>
+              <button type="button" class="btn-watch-video" onclick="openVideoPlayer('${v.id}')">
+                <span>Watch</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function initPlayerModal() {
+      const modal = document.getElementById('playerModal');
+      const closeBtn = document.getElementById('closePlayerBtn');
+      const videoPlayer = document.getElementById('html5VideoPlayer');
+
+      const closeModal = () => {
+        videoPlayer.pause();
+        modal.classList.remove('active');
+      };
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+    }
+
+    window.openVideoPlayer = function(id) {
+      const v = publishedVideosCache.find(item => item.id === id);
+      if (!v) return;
+
+      const modal = document.getElementById('playerModal');
+      const videoPlayer = document.getElementById('html5VideoPlayer');
+      const videoSource = document.getElementById('videoSource');
+
+      document.getElementById('playerModalTitle').textContent = `Lesson #${v.lesson_number}: ${v.title}`;
+      document.getElementById('playerCategoryTag').textContent = v.category;
+      document.getElementById('playerDurationText').textContent = `Duration: ${v.duration || '10:00'}`;
+      document.getElementById('playerDescriptionText').textContent = v.description || 'No additional notes provided for this lesson.';
+
+      videoSource.src = v.video_url;
+      videoPlayer.load();
+      videoPlayer.play().catch(() => {});
+
+      modal.classList.add('active');
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

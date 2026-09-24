@@ -1,4 +1,4 @@
-﻿# Creator Nihar
+# Creator Nihar
 
 > **Tagline:** Creative Minds. Digital Excellence.
 
@@ -131,9 +131,49 @@ This website is statically optimized and can be deployed instantly to:
 
 ---
 
+## Supabase Authentication, Database, Storage & Owner-Only Admin
+
+Creator Nihar features a secure, production-grade authentication and administrative ecosystem powered by Supabase:
+
+### 1. Database Schema & RLS Setup (1-Click)
+1. Open your Supabase project dashboard at [supabase.com](https://supabase.com).
+2. Go to **SQL Editor** -> **New Query**.
+3. Copy the entire contents of [`supabase-schema.sql`](supabase-schema.sql) and click **Run**.
+4. This automatically provisions:
+   - `profiles` table with automatic `role = 'user'` default and secure auto-elevation to `admin` for `nhrnhl0507@gmail.com`.
+   - `login_activity` audit table tracking user logins, timestamps, and client device information.
+   - `videos` table with RLS restricting access so only authenticated members can stream published lessons, and only the admin can create, edit, delete, or toggle drafts.
+   - `bookings` table capturing client project requests from Shiva AI and consultation forms.
+   - Supabase Storage buckets: `videos` (authenticated stream) and `thumbnails` (public read, admin write).
+
+### 2. Frontend Configuration
+In `assets/js/supabase-config.js`, update:
+```javascript
+const DEFAULT_SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+```
+*(Only the public `anon` key is used in client code. The `service-role` key is NEVER exposed in the frontend).*
+
+### 3. Owner Account & Admin Panel (`/admin`)
+- The Admin Suite (`/admin` and `admin.html`) is restricted exclusively to Nihar Amrawat (`nhrnhl0507@gmail.com`).
+- Normal users attempting to access `/admin` receive a strict `403 Forbidden` access denied screen backed by Supabase RLS policies.
+- The Admin Panel provides real database metrics:
+  - Real registered user counts and accounts table with status management.
+  - Real login activity log with device and timestamp audits.
+  - Video management: Direct video & thumbnail upload to Supabase Storage, title/description editing, draft/published toggle, and deletion.
+  - Client bookings review from Shiva AI and website consultation.
+
+### 4. AI Video Learning Hub (`/learning.html`)
+- A dedicated learning studio where authenticated students stream step-by-step masterclasses in photorealistic AI generation and modern digital development.
+- Non-authenticated visitors see a locked preview with an instant "Sign In to Access" prompt.
+- Backend RLS on Supabase ensures video URLs and lessons are protected against unauthenticated scrapers.
+
+---
+
 ## Contact
 
 - **Founder:** Nihar Amrawat
 - **Email:** [nhrnhl0507@gmail.com](mailto:nhrnhl0507@gmail.com)
 - **WhatsApp:** [+91 7723913729](https://wa.me/917723913729)
 - **Location:** Udaipur, Rajasthan, India
+

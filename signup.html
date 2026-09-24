@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up | Creator Nihar - Create Your Account</title>
+  <meta name="description" content="Create a free Creator Nihar account. Access the AI Video Learning curriculum, project dashboards, and creative tools.">
+
+  <!-- Favicon Configuration -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/images/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/images/favicon-96x96.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Main & Auth Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
+
+  <!-- Supabase JS CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="auth-page-wrapper">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <a href="index.html" title="Back to Creator Nihar">
+          <img src="assets/images/logo.jpg" alt="Creator Nihar" class="auth-brand-logo">
+        </a>
+        <h1 class="auth-brand-title">Create Account</h1>
+        <p class="auth-brand-desc">Join Creator Nihar to access AI Video Learning &amp; resources</p>
+      </div>
+
+      <div id="authAlert" class="auth-alert" style="display: none;"></div>
+
+      <form id="signupForm" autocomplete="on">
+        <div class="auth-form-group">
+          <label for="signupName">Full Name <span class="req">*</span></label>
+          <div class="auth-input-wrap">
+            <input type="text" id="signupName" class="auth-input" placeholder="Your Full Name" required autocomplete="name">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="signupEmail">Email Address <span class="req">*</span></label>
+          <div class="auth-input-wrap">
+            <input type="email" id="signupEmail" class="auth-input" placeholder="name@example.com" required autocomplete="email">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="signupPhone">Phone / WhatsApp Number <span style="font-weight: 400; color: var(--text-muted);">(Optional)</span></label>
+          <div class="auth-input-wrap">
+            <input type="tel" id="signupPhone" class="auth-input" placeholder="+91 7723913729" autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="signupPassword">Password <span class="req">*</span></label>
+          <div class="auth-input-wrap">
+            <input type="password" id="signupPassword" class="auth-input" placeholder="Minimum 6 characters" required autocomplete="new-password">
+            <button type="button" class="auth-password-toggle" id="togglePasswordBtn" aria-label="Toggle password visibility">👁️</button>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="signupConfirmPassword">Confirm Password <span class="req">*</span></label>
+          <div class="auth-input-wrap">
+            <input type="password" id="signupConfirmPassword" class="auth-input" placeholder="Re-enter your password" required autocomplete="new-password">
+          </div>
+        </div>
+
+        <div class="auth-form-meta">
+          <label class="auth-checkbox-label" style="align-items: flex-start;">
+            <input type="checkbox" id="agreeTerms" required checked style="margin-top: 3px;">
+            <span>I agree to receive communications and updates from Creator Nihar.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-auth-submit" id="signupSubmitBtn">
+          <span>Create Account</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="login.html" class="auth-link">Sign In</a></p>
+        <p style="margin-top: 10px;">
+          <a href="index.html" class="auth-link" style="font-size: 0.82rem; color: var(--text-muted);">← Back to Creator Nihar Home</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Config & Logic -->
+  <script src="assets/js/supabase-config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const signupForm = document.getElementById('signupForm');
+      const signupName = document.getElementById('signupName');
+      const signupEmail = document.getElementById('signupEmail');
+      const signupPhone = document.getElementById('signupPhone');
+      const signupPassword = document.getElementById('signupPassword');
+      const signupConfirmPassword = document.getElementById('signupConfirmPassword');
+      const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+      const signupSubmitBtn = document.getElementById('signupSubmitBtn');
+      const authAlert = document.getElementById('authAlert');
+
+      // Check if already authenticated
+      const user = await window.CNAuth.getUser();
+      if (user) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      // Password visibility toggle
+      togglePasswordBtn.addEventListener('click', () => {
+        const type = signupPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        signupPassword.setAttribute('type', type);
+        togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🔒';
+      });
+
+      function showAlert(msg, type = 'error') {
+        authAlert.className = `auth-alert ${type}`;
+        authAlert.innerHTML = `<span>${msg}</span>`;
+        authAlert.style.display = 'flex';
+      }
+
+      // Handle submission
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        authAlert.style.display = 'none';
+
+        const name = signupName.value.trim();
+        const email = signupEmail.value.trim();
+        const phone = signupPhone.value.trim();
+        const password = signupPassword.value;
+        const confirmPassword = signupConfirmPassword.value;
+
+        if (!name || !email || !password || !confirmPassword) {
+          showAlert('Please fill in all mandatory fields.');
+          return;
+        }
+
+        if (password.length < 6) {
+          showAlert('Password must be at least 6 characters long.');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          showAlert('Passwords do not match. Please re-enter.');
+          return;
+        }
+
+        signupSubmitBtn.disabled = true;
+        signupSubmitBtn.innerHTML = `<span>Creating Account...</span>`;
+
+        try {
+          const { user, session } = await window.CNAuth.signUp(name, email, password, phone);
+
+          if (session) {
+            // Immediate session (email confirmation off)
+            showAlert('Account created successfully! Welcome to Creator Nihar.', 'success');
+            setTimeout(() => {
+              window.location.href = 'dashboard.html';
+            }, 800);
+          } else {
+            // Email confirmation required by Supabase project settings
+            showAlert('Account created! Please check your email inbox to confirm your address before logging in.', 'info');
+            signupSubmitBtn.disabled = false;
+            signupSubmitBtn.innerHTML = `<span>Verification Email Sent ✓</span>`;
+          }
+
+        } catch (err) {
+          console.error('Signup error:', err);
+          let errMsg = err.message || 'Unable to complete registration.';
+          if (errMsg.includes('User already registered')) {
+            errMsg = 'An account with this email address already exists. Please log in.';
+          }
+          showAlert(errMsg, 'error');
+          signupSubmitBtn.disabled = false;
+          signupSubmitBtn.innerHTML = `<span>Create Account</span> <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

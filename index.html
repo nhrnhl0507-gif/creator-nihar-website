@@ -228,6 +228,12 @@
 
   <!-- Shiva AI Chatbot Stylesheet -->
   <link rel="stylesheet" href="assets/css/shiva.css">
+
+  <!-- Auth & Learning Stylesheet -->
+  <link rel="stylesheet" href="assets/css/auth.css">
+
+  <!-- Supabase JS CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -247,6 +253,7 @@
         <a href="#pricing" class="nav-link">Pricing</a>
         <a href="#why-us" class="nav-link">Why Choose Me</a>
         <a href="#process" class="nav-link">Process</a>
+        <a href="#learning" class="nav-link">AI Video Learning</a>
         <a href="#about" class="nav-link">About</a>
         <a href="#owner" class="nav-link">Owner</a>
         <a href="#faq" class="nav-link">FAQ</a>
@@ -256,6 +263,9 @@
 
       <!-- Right Action & Mobile Toggle -->
       <div class="nav-actions">
+        <!-- Supabase Auth Actions (Dynamic) -->
+        <div class="nav-auth-actions" id="navAuthActions"></div>
+
         <a href="free-consultation.html" class="btn btn-secondary nav-btn nav-btn-consultation">
           <span>Free Consultation</span>
         </a>
@@ -803,6 +813,116 @@
           <p class="step-desc">
             Receive high-definition video assets or your deployed, fully responsive website ready to attract clients.
           </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       AI VIDEO LEARNING SECTION (PROTECTED ACCESS)
+       ======================================================================== -->
+  <section class="section learning-section" id="learning" style="background: var(--bg-page);">
+    <div class="container">
+      <div class="learning-header reveal">
+        <div class="learning-badge">
+          <span>🎓</span> Exclusive Masterclasses
+        </div>
+        <h2 class="learning-title">
+          AI Video Creation &amp; Digital Development <span class="gradient-span">Learning Hub</span>
+        </h2>
+        <p class="learning-subtitle">
+          Step-by-step masterclasses in photorealistic AI generation, cinematic prompt engineering, and modern web development curated by Founder Nihar Amrawat.
+        </p>
+      </div>
+
+      <!-- Authenticated User Showcase -->
+      <div id="indexLearningAuthBox" style="display: none;">
+        <div class="videos-grid" id="indexVideosGrid">
+          <!-- Populated from Supabase database -->
+        </div>
+        <div style="text-align: center; margin-top: 40px;">
+          <a href="learning.html" class="btn btn-primary" style="background: var(--brand-blue); padding: 12px 28px;">
+            <span>Explore All Masterclasses in Learning Portal →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Unauthenticated Locked Teaser Banner -->
+      <div id="indexLearningGuestBox" style="display: none;">
+        <div class="learning-locked-banner reveal">
+          <div class="locked-icon-badge">🔒</div>
+          <h3 class="locked-title">Protected AI Video Learning Content</h3>
+          <p class="locked-desc">
+            Access to our video lessons and generation workflows is reserved for registered Creator Nihar members. Sign in or create a free account to unlock our practical curriculum.
+          </p>
+          <div class="locked-actions">
+            <a href="login.html?redirect=learning.html" class="btn btn-primary" style="background: var(--brand-orange); border: none; padding: 12px 28px;">
+              <span>Sign In to Access</span>
+            </a>
+            <a href="signup.html" class="btn btn-secondary" style="color: #fff; border-color: rgba(255,255,255,0.4); padding: 12px 28px;">
+              <span>Create Free Account</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Static Preview Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 36px;">
+          <div class="video-card reveal">
+            <div class="video-card-thumb-wrap">
+              <img src="assets/images/logo.jpg" alt="Lesson 1" class="video-card-thumb" style="filter: brightness(0.65);">
+              <div class="video-play-overlay">
+                <span style="font-size: 1.8rem;">🔒</span>
+              </div>
+              <span class="video-lesson-badge">Lesson #1</span>
+              <span class="video-duration-badge">12:45</span>
+            </div>
+            <div class="video-card-body">
+              <div class="video-category-tag">AI Video Creation</div>
+              <h4 class="video-card-title">Mastering Photorealistic AI Video Prompts</h4>
+              <p class="video-card-desc">Cinematic lighting, camera motions, and prompt framing for commercial video production.</p>
+              <div class="video-card-footer">
+                <a href="login.html?redirect=learning.html" class="btn-auth-link" style="color: var(--brand-orange);">Log In to Watch →</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="video-card reveal">
+            <div class="video-card-thumb-wrap">
+              <img src="assets/images/logo.jpg" alt="Lesson 2" class="video-card-thumb" style="filter: brightness(0.65);">
+              <div class="video-play-overlay">
+                <span style="font-size: 1.8rem;">🔒</span>
+              </div>
+              <span class="video-lesson-badge">Lesson #2</span>
+              <span class="video-duration-badge">15:20</span>
+            </div>
+            <div class="video-card-body">
+              <div class="video-category-tag">Audio &amp; Voice</div>
+              <h4 class="video-card-title">Voice Cloning, Sound Design &amp; Audio Sync</h4>
+              <p class="video-card-desc">Studio audio engineering, background scores, and dynamic emotion matching.</p>
+              <div class="video-card-footer">
+                <a href="login.html?redirect=learning.html" class="btn-auth-link" style="color: var(--brand-orange);">Log In to Watch →</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="video-card reveal">
+            <div class="video-card-thumb-wrap">
+              <img src="assets/images/logo.jpg" alt="Lesson 3" class="video-card-thumb" style="filter: brightness(0.65);">
+              <div class="video-play-overlay">
+                <span style="font-size: 1.8rem;">🔒</span>
+              </div>
+              <span class="video-lesson-badge">Lesson #3</span>
+              <span class="video-duration-badge">18:10</span>
+            </div>
+            <div class="video-card-body">
+              <div class="video-category-tag">AI Web Development</div>
+              <h4 class="video-card-title">High-Converting Responsive Agency Websites</h4>
+              <p class="video-card-desc">Building responsive layouts, lead capture pipelines, and automated customer flows.</p>
+              <div class="video-card-footer">
+                <a href="login.html?redirect=learning.html" class="btn-auth-link" style="color: var(--brand-orange);">Log In to Watch →</a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1383,10 +1503,76 @@
   <!-- Toast Notification Container -->
   <div class="toast-msg" id="toast"></div>
 
+  <!-- Supabase Config & Auth Controller -->
+  <script src="assets/js/supabase-config.js"></script>
+
   <!-- Main JavaScript Controller -->
   <script src="assets/js/main.js"></script>
 
   <!-- Shiva AI Chatbot Controller -->
   <script src="assets/js/shiva.js?v=2.3"></script>
+
+  <!-- Index AI Video Learning Section Controller -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const authBox = document.getElementById('indexLearningAuthBox');
+      const guestBox = document.getElementById('indexLearningGuestBox');
+      const grid = document.getElementById('indexVideosGrid');
+
+      if (!window.CNAuth) return;
+
+      const user = await window.CNAuth.getUser();
+      if (!user) {
+        guestBox.style.display = 'block';
+        authBox.style.display = 'none';
+        return;
+      }
+
+      // User logged in: Load published videos
+      guestBox.style.display = 'none';
+      authBox.style.display = 'block';
+
+      try {
+        const videos = await window.CNVideos.getPublishedVideos();
+        if (videos && videos.length > 0) {
+          grid.innerHTML = videos.slice(0, 3).map(v => `
+            <div class="video-card reveal">
+              <div class="video-card-thumb-wrap">
+                <img src="${escapeHtml(v.thumbnail_url || 'assets/images/logo.jpg')}" alt="${escapeHtml(v.title)}" class="video-card-thumb" onerror="this.src='assets/images/logo.jpg'">
+                <div class="video-play-overlay">
+                  <a href="learning.html" class="video-play-btn" aria-label="Watch Lesson">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </a>
+                </div>
+                <span class="video-lesson-badge">Lesson #${v.lesson_number}</span>
+                <span class="video-duration-badge">${escapeHtml(v.duration || '10:00')}</span>
+              </div>
+              <div class="video-card-body">
+                <div class="video-category-tag">${escapeHtml(v.category)}</div>
+                <h4 class="video-card-title">${escapeHtml(v.title)}</h4>
+                <p class="video-card-desc">${escapeHtml(v.description || 'Comprehensive step-by-step masterclass.')}</p>
+                <div class="video-card-footer">
+                  <a href="learning.html" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.85rem;">Watch in Portal →</a>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: var(--text-muted);">
+              New lessons are being recorded and published by Founder Nihar Amrawat. Check back shortly!
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.warn('Index videos load warning:', err);
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+    });
+  </script>
 </body>
 </html>
