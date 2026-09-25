@@ -87,6 +87,9 @@
     return `${browser} on ${os} (${isMobile ? 'Mobile' : 'Desktop'})`;
   }
 
+  // In-memory mutex tracking active in-flight login activity inserts
+  const inFlightLogins = new Set();
+
   // --- AUTH METHODS ---
   const CNAuth = {
     client: supabaseClient,
@@ -174,15 +177,26 @@
       if (!isConfigured() || !supabaseClient) {
         throw new Error('Supabase client is not configured yet. Please verify project credentials.');
       }
+
+      // Explicit login action: clear any previous session markers for this browser
+      try {
+        const prevUser = await CNAuth.getUser();
+        if (prevUser && prevUser.id) {
+          localStorage.removeItem(`cn_last_logged_token_${prevUser.id}`);
+          localStorage.removeItem(`cn_last_login_time_${prevUser.id}`);
+          sessionStorage.removeItem(`cn_last_login_${prevUser.id}`);
+        }
+      } catch (e) { /* ignore */ }
+
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: email.trim(),
         password: password
       });
       if (error) throw error;
 
-      // Log login activity and wait for database write before redirect
+      // Log login activity with the freshly established session
       if (data.user) {
-        await CNAuth.logLoginActivity(data.user.id, data.user.email);
+        await CNAuth.logLoginActivity(data.user.id, data.user.email, data.session);
       }
       return data;
     },
@@ -207,7 +221,7 @@
 
       // If session established immediately (email confirmation disabled in Supabase)
       if (data.user && data.session) {
-        await CNAuth.logLoginActivity(data.user.id, data.user.email);
+        await CNAuth.logLoginActivity(data.user.id, data.user.email, data.session);
       }
       return data;
     },
@@ -216,6 +230,12 @@
     signOut: async () => {
       if (!supabaseClient) return;
       try {
+        const user = await CNAuth.getUser();
+        if (user && user.id) {
+          localStorage.removeItem(`cn_last_logged_token_${user.id}`);
+          localStorage.removeItem(`cn_last_login_time_${user.id}`);
+          sessionStorage.removeItem(`cn_last_login_${user.id}`);
+        }
         await supabaseClient.auth.signOut();
       } catch (err) {
         console.error('signOut error:', err);
@@ -248,19 +268,54 @@
     },
 
     // Record login activity in public.login_activity and update last_login
-    logLoginActivity: async (userId, email) => {
+    logLoginActivity: async (userId, email, currentSession = null) => {
       if (!supabaseClient || !userId) return;
+
+      // 1. In-memory mutex: prevent concurrent asynchronous executions
+      if (inFlightLogins.has(userId)) {
+        return;
+      }
+
       try {
-        // Prevent duplicate login events within 10 seconds (e.g. rapid submission or duplicate events)
-        const lastLogKey = `cn_last_login_${userId}`;
-        const lastLogTime = parseInt(sessionStorage.getItem(lastLogKey) || '0', 10);
+        // Resolve session if not provided
+        if (!currentSession && supabaseClient.auth) {
+          try {
+            const { data } = await supabaseClient.auth.getSession();
+            currentSession = data ? data.session : null;
+          } catch (sessErr) { /* ignore */ }
+        }
+
+        const tokenSignature = (currentSession && currentSession.access_token)
+          ? currentSession.access_token.slice(-40)
+          : null;
+
+        const tokenKey = `cn_last_logged_token_${userId}`;
+        const timeKey = `cn_last_login_time_${userId}`;
+
+        // 2. Token-based deduplication: if this exact session token was already logged, skip
+        if (tokenSignature) {
+          const lastLoggedToken = localStorage.getItem(tokenKey);
+          if (lastLoggedToken === tokenSignature) {
+            return;
+          }
+        }
+
+        // 3. Time-based debounce (30 seconds): prevent rapid repeat inserts across all tabs
+        const lastLogTime = parseInt(localStorage.getItem(timeKey) || '0', 10);
         const now = Date.now();
-        if (now - lastLogTime < 10000) {
+        if (now - lastLogTime < 30000) {
           return;
         }
 
+        // Acquire in-flight mutex lock & write-ahead marker
+        inFlightLogins.add(userId);
+        if (tokenSignature) {
+          localStorage.setItem(tokenKey, tokenSignature);
+        }
+        localStorage.setItem(timeKey, now.toString());
+
         const deviceInfo = getDeviceInfo();
-        const { data, error: insertError } = await supabaseClient
+        const { error: insertError } = await supabaseClient
           .from('login_activity')
           .insert([
             {
@@ -268,16 +323,15 @@
               email: email,
               device_info: deviceInfo
             }
-          ])
-          .select();
+          ]);
 
         if (insertError) {
           console.error('logLoginActivity insert error:', insertError);
+          // Rollback markers so a retry can occur
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem(timeKey);
           return;
         }
-
-        // Only mark sessionStorage debounce AFTER a confirmed database write
-        sessionStorage.setItem(lastLogKey, now.toString());
 
         await supabaseClient
           .from('profiles')
@@ -285,6 +339,8 @@
           .eq('id', userId);
       } catch (e) {
         console.warn('logLoginActivity error:', e);
+      } finally {
+        inFlightLogins.delete(userId);
       }
     },
 
@@ -650,7 +706,7 @@
       supabaseClient.auth.onAuthStateChange(async (event, session) => {
         CNAuth.initNavbar();
         if (event === 'SIGNED_IN' && session && session.user) {
-          await CNAuth.logLoginActivity(session.user.id, session.user.email);
+          await CNAuth.logLoginActivity(session.user.id, session.user.email, session);
         }
       });
     }
