@@ -211,23 +211,104 @@
         </div>
         <p id="playerDescriptionText" style="line-height: 1.5; font-size: 0.9rem;">
           Lesson overview and notes will be displayed here.
-        </p>
+        <div style="margin-top: 14px; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+          <button type="button" class="btn-rate-lesson" id="playerRateBtn">
+            <span>⭐ Rate this Lesson / Give Feedback</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- VIDEO FEEDBACK & VOTING POLL MODAL -->
+  <div class="feedback-modal" id="feedbackModal">
+    <div class="feedback-modal-content">
+      <div class="feedback-modal-header">
+        <div>
+          <span class="feedback-header-badge" id="feedbackBadge">🎬 Video Completed</span>
+          <h3 class="feedback-modal-title" id="feedbackModalTitle">Rate This Lesson</h3>
+          <p class="feedback-modal-subtitle" id="feedbackLessonSubtitle">Lesson Overview</p>
+        </div>
+        <button type="button" class="feedback-modal-close" id="closeFeedbackModalBtn" aria-label="Close">✕</button>
+      </div>
+
+      <form id="feedbackForm" class="feedback-modal-body">
+        <input type="hidden" id="feedbackVideoId" value="">
+
+        <div id="feedbackAlertBox" class="feedback-alert"></div>
+
+        <!-- 1. Star Rating -->
+        <div class="feedback-rating-group">
+          <label class="feedback-group-label">⭐ Rate this lesson <span class="req">*</span></label>
+          <div class="feedback-stars-wrap" id="starsContainer">
+            <button type="button" class="feedback-star-btn" data-value="1" title="1 Star - Poor">★</button>
+            <button type="button" class="feedback-star-btn" data-value="2" title="2 Stars - Fair">★</button>
+            <button type="button" class="feedback-star-btn" data-value="3" title="3 Stars - Good">★</button>
+            <button type="button" class="feedback-star-btn" data-value="4" title="4 Stars - Very Good">★</button>
+            <button type="button" class="feedback-star-btn" data-value="5" title="5 Stars - Excellent">★</button>
+          </div>
+          <span class="feedback-star-desc" id="starDescription">Select your rating</span>
+          <input type="hidden" id="selectedRating" value="">
+        </div>
+
+        <!-- 2. Voting Poll -->
+        <div>
+          <label class="feedback-group-label">📊 How much did you like it? <span class="req">*</span></label>
+          <div class="feedback-poll-options" id="pollOptionsContainer">
+            <div class="feedback-poll-card" data-poll="100% — Loved it">
+              <span class="feedback-poll-dot green"></span>
+              <span class="feedback-poll-text">🟢 100% — Loved it</span>
+            </div>
+            <div class="feedback-poll-card" data-poll="75% — Very Good">
+              <span class="feedback-poll-dot blue"></span>
+              <span class="feedback-poll-text">🔵 75% — Very Good</span>
+            </div>
+            <div class="feedback-poll-card" data-poll="50% — Average">
+              <span class="feedback-poll-dot yellow"></span>
+              <span class="feedback-poll-text">🟡 50% — Average</span>
+            </div>
+            <div class="feedback-poll-card" data-poll="0% — Not Good">
+              <span class="feedback-poll-dot red"></span>
+              <span class="feedback-poll-text">🔴 0% — Not Good</span>
+            </div>
+          </div>
+          <input type="hidden" id="selectedPoll" value="">
+        </div>
+
+        <!-- 3. Optional Written Feedback -->
+        <div>
+          <label for="feedbackText" class="feedback-group-label">💬 Optional written feedback</label>
+          <textarea id="feedbackText" class="feedback-textarea" rows="3" placeholder="Share your suggestions, takeaways, or questions for Creator Nihar..."></textarea>
+        </div>
+
+        <!-- 4. Actions -->
+        <div class="feedback-modal-actions">
+          <button type="button" class="btn-feedback-cancel" id="maybeLaterBtn">Maybe Later</button>
+          <button type="submit" class="btn-feedback-submit" id="submitFeedbackBtn">
+            <span>Submit Feedback</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Supabase Config & Learning Engine -->
-  <script src="assets/js/supabase-config.js?v=1.4"></script>
+  <script src="assets/js/supabase-config.js?v=1.5"></script>
   <script>
     let publishedVideosCache = [];
     let currentCategory = 'All';
+    let currentPlayingVideoId = null;
+    let currentUser = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const user = await window.CNAuth.getUser();
+      currentUser = await window.CNAuth.getUser();
       const authContainer = document.getElementById('authLessonsContainer');
       const lockedBanner = document.getElementById('guestLockedBanner');
 
-      if (!user) {
+      if (!currentUser) {
         // Unauthenticated User: Show Locked Banner and Curriculum Teaser
         lockedBanner.style.display = 'block';
         authContainer.style.display = 'none';
@@ -252,6 +333,9 @@
 
       // Video Player Modal Binding
       initPlayerModal();
+
+      // Feedback Modal Binding
+      initFeedbackModal();
     });
 
     async function loadPublishedVideos() {
@@ -311,9 +395,14 @@
               <div class="video-tags">
                 ${Array.isArray(v.tags) && v.tags.length > 0 ? v.tags.map(t => `<span class="video-tag">#${escapeHtml(t)}</span>`).join('') : '<span class="video-tag">#CreatorNihar</span>'}
               </div>
-              <button type="button" class="btn-watch-video" onclick="openVideoPlayer('${v.id}')">
-                <span>Watch</span>
-              </button>
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="btn-rate-lesson" onclick="openFeedbackModal('${v.id}', true)">
+                  <span>⭐ Rate</span>
+                </button>
+                <button type="button" class="btn-watch-video" onclick="openVideoPlayer('${v.id}')">
+                  <span>Watch</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -324,6 +413,7 @@
       const modal = document.getElementById('playerModal');
       const closeBtn = document.getElementById('closePlayerBtn');
       const videoPlayer = document.getElementById('html5VideoPlayer');
+      const playerRateBtn = document.getElementById('playerRateBtn');
 
       const closeModal = () => {
         videoPlayer.pause();
@@ -334,12 +424,39 @@
       modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
       });
+
+      if (playerRateBtn) {
+        playerRateBtn.addEventListener('click', () => {
+          if (currentPlayingVideoId) {
+            openFeedbackModal(currentPlayingVideoId, true);
+          }
+        });
+      }
+
+      // VIDEO END TRIGGER: When user finishes watching video
+      videoPlayer.addEventListener('ended', async () => {
+        if (!currentPlayingVideoId) return;
+        const user = await window.CNAuth.getUser();
+        if (!user) return;
+
+        try {
+          // Check if feedback already submitted for this video
+          const existing = await window.CNFeedback.getUserFeedback(currentPlayingVideoId, user.id);
+          if (!existing) {
+            // Open popup automatically
+            openFeedbackModal(currentPlayingVideoId, false);
+          }
+        } catch (err) {
+          console.warn('Error checking existing feedback on video end:', err);
+        }
+      });
     }
 
     window.openVideoPlayer = function(id) {
       const v = publishedVideosCache.find(item => item.id === id);
       if (!v) return;
 
+      currentPlayingVideoId = id;
       const modal = document.getElementById('playerModal');
       const videoPlayer = document.getElementById('html5VideoPlayer');
       const videoSource = document.getElementById('videoSource');
@@ -352,6 +469,220 @@
       videoSource.src = v.video_url;
       videoPlayer.load();
       videoPlayer.play().catch(() => {});
+
+      modal.classList.add('active');
+    };
+
+    // --- VIDEO FEEDBACK MODAL CONTROLLER ---
+    function initFeedbackModal() {
+      const modal = document.getElementById('feedbackModal');
+      const closeBtn = document.getElementById('closeFeedbackModalBtn');
+      const maybeLaterBtn = document.getElementById('maybeLaterBtn');
+      const form = document.getElementById('feedbackForm');
+      const starsContainer = document.getElementById('starsContainer');
+      const starDesc = document.getElementById('starDescription');
+      const ratingInput = document.getElementById('selectedRating');
+      const pollContainer = document.getElementById('pollOptionsContainer');
+      const pollInput = document.getElementById('selectedPoll');
+      const alertBox = document.getElementById('feedbackAlertBox');
+      const submitBtn = document.getElementById('submitFeedbackBtn');
+
+      const ratingLabels = {
+        1: '1 Star — Poor',
+        2: '2 Stars — Fair',
+        3: '3 Stars — Good',
+        4: '4 Stars — Very Good',
+        5: '5 Stars — Excellent!'
+      };
+
+      const closeModal = () => {
+        modal.classList.remove('active');
+      };
+
+      closeBtn.addEventListener('click', closeModal);
+      maybeLaterBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      // Star rating interaction
+      const starButtons = starsContainer.querySelectorAll('.feedback-star-btn');
+      starButtons.forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+          const val = parseInt(btn.getAttribute('data-value'), 10);
+          starButtons.forEach(s => {
+            const sVal = parseInt(s.getAttribute('data-value'), 10);
+            s.classList.toggle('hovered', sVal <= val);
+          });
+          starDesc.textContent = ratingLabels[val] || '';
+        });
+
+        btn.addEventListener('click', () => {
+          const val = parseInt(btn.getAttribute('data-value'), 10);
+          ratingInput.value = val;
+          starButtons.forEach(s => {
+            const sVal = parseInt(s.getAttribute('data-value'), 10);
+            s.classList.toggle('active', sVal <= val);
+          });
+          starDesc.textContent = ratingLabels[val] || '';
+        });
+      });
+
+      starsContainer.addEventListener('mouseleave', () => {
+        starButtons.forEach(s => s.classList.remove('hovered'));
+        const currentVal = parseInt(ratingInput.value, 10);
+        if (currentVal) {
+          starDesc.textContent = ratingLabels[currentVal] || '';
+        } else {
+          starDesc.textContent = 'Select your rating';
+        }
+      });
+
+      // Poll options interaction
+      const pollCards = pollContainer.querySelectorAll('.feedback-poll-card');
+      pollCards.forEach(card => {
+        card.addEventListener('click', () => {
+          pollCards.forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          pollInput.value = card.getAttribute('data-poll');
+        });
+      });
+
+      // Form submission
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.className = 'feedback-alert';
+        alertBox.style.display = 'none';
+
+        const videoId = document.getElementById('feedbackVideoId').value;
+        const rating = parseInt(ratingInput.value, 10);
+        const pollResponse = pollInput.value;
+        const feedbackText = document.getElementById('feedbackText').value.trim();
+
+        if (!rating) {
+          alertBox.className = 'feedback-alert error';
+          alertBox.textContent = 'Please choose a star rating (1–5 stars).';
+          return;
+        }
+
+        if (!pollResponse) {
+          alertBox.className = 'feedback-alert error';
+          alertBox.textContent = 'Please select a voting poll option.';
+          return;
+        }
+
+        const user = await window.CNAuth.getUser();
+        if (!user) {
+          alertBox.className = 'feedback-alert error';
+          alertBox.textContent = 'You must be logged in to submit feedback.';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = `<span>Submitting...</span>`;
+
+        try {
+          await window.CNFeedback.submitFeedback({
+            video_id: videoId,
+            user_id: user.id,
+            user_email: user.email,
+            rating: rating,
+            poll_response: pollResponse,
+            feedback_text: feedbackText
+          });
+
+          alertBox.className = 'feedback-alert success';
+          alertBox.textContent = '✓ Thank you! Your feedback and vote have been successfully saved.';
+
+          setTimeout(() => {
+            closeModal();
+            alertBox.style.display = 'none';
+          }, 1400);
+        } catch (err) {
+          alertBox.className = 'feedback-alert error';
+          alertBox.textContent = err.message || 'Error submitting feedback. Please try again.';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
+        }
+      });
+    }
+
+    window.openFeedbackModal = async function(videoId, isManual) {
+      const v = publishedVideosCache.find(item => item.id === videoId);
+      if (!v) return;
+
+      const modal = document.getElementById('feedbackModal');
+      const badge = document.getElementById('feedbackBadge');
+      const modalTitle = document.getElementById('feedbackModalTitle');
+      const subtitle = document.getElementById('feedbackLessonSubtitle');
+      const videoIdInput = document.getElementById('feedbackVideoId');
+      const ratingInput = document.getElementById('selectedRating');
+      const starDesc = document.getElementById('starDescription');
+      const pollInput = document.getElementById('selectedPoll');
+      const feedbackText = document.getElementById('feedbackText');
+      const alertBox = document.getElementById('feedbackAlertBox');
+      const submitBtn = document.getElementById('submitFeedbackBtn');
+
+      alertBox.style.display = 'none';
+      videoIdInput.value = videoId;
+
+      badge.textContent = isManual ? '⭐ Lesson Feedback' : '🎬 Video Completed';
+      modalTitle.textContent = 'Rate This Lesson';
+      subtitle.textContent = `Lesson #${v.lesson_number}: ${v.title}`;
+
+      // Reset stars & poll
+      const starButtons = document.querySelectorAll('.feedback-star-btn');
+      starButtons.forEach(s => s.classList.remove('active', 'hovered'));
+      ratingInput.value = '';
+      starDesc.textContent = 'Select your rating';
+
+      const pollCards = document.querySelectorAll('.feedback-poll-card');
+      pollCards.forEach(c => c.classList.remove('selected'));
+      pollInput.value = '';
+      feedbackText.value = '';
+
+      submitBtn.innerHTML = `
+        <span>Submit Feedback</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+
+      // Check if user already submitted feedback
+      const user = await window.CNAuth.getUser();
+      if (user) {
+        try {
+          const existing = await window.CNFeedback.getUserFeedback(videoId, user.id);
+          if (existing) {
+            // Prepopulate existing feedback for seamless editing
+            ratingInput.value = existing.rating;
+            starButtons.forEach(s => {
+              const val = parseInt(s.getAttribute('data-value'), 10);
+              s.classList.toggle('active', val <= existing.rating);
+            });
+            const ratingLabels = { 1: '1 Star — Poor', 2: '2 Stars — Fair', 3: '3 Stars — Good', 4: '4 Stars — Very Good', 5: '5 Stars — Excellent!' };
+            starDesc.textContent = ratingLabels[existing.rating] || '';
+
+            pollInput.value = existing.poll_response;
+            pollCards.forEach(c => {
+              c.classList.toggle('selected', c.getAttribute('data-poll') === existing.poll_response);
+            });
+
+            feedbackText.value = existing.feedback_text || '';
+            modalTitle.textContent = 'Update Lesson Feedback';
+            submitBtn.innerHTML = `
+              <span>Update Feedback</span>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            `;
+          }
+        } catch (e) {
+          console.warn('Error loading existing feedback for modal:', e);
+        }
+      }
 
       modal.classList.add('active');
     };

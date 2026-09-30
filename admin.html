@@ -120,6 +120,15 @@
             <div class="stat-label">Shiva &amp; Consultation</div>
           </div>
         </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">💬</div>
+          <div class="admin-stat-content">
+            <h3>Video Feedback</h3>
+            <div class="stat-number" id="statFeedbackCount">0</div>
+            <div class="stat-label" id="statFeedbackSubLabel">0 Reviews • ★ 0.0</div>
+          </div>
+        </div>
       </div>
 
       <!-- Tab Navigation -->
@@ -138,6 +147,9 @@
         </button>
         <button type="button" class="admin-tab-btn" data-tab="tab-bookings">
           <span>📋 Client Bookings</span>
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tab-feedback">
+          <span>💬 Video Feedback</span>
         </button>
       </div>
 
@@ -336,6 +348,169 @@
         </div>
       </div>
 
+      <!-- TAB 6: VIDEO FEEDBACK & VOTING POLL -->
+      <div class="admin-tab-pane" id="tab-feedback">
+        <div class="admin-panel-card" style="margin-bottom: 24px;">
+          <div class="admin-panel-header" style="flex-wrap: wrap; gap: 14px;">
+            <div>
+              <h2 class="admin-panel-title">💬 Video Feedback &amp; Voting Poll Analytics <span id="feedbackTabCountBadge" style="margin-left: 8px; font-size: 0.78rem; background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 3px 10px; border-radius: 12px; font-weight: 700;">0 Feedback</span></h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Audited student ratings, voting poll sentiment, and qualitative learning feedback</p>
+            </div>
+            <div class="admin-actions-bar" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary" id="refreshFeedbackBtn" style="font-size: 0.82rem; padding: 7px 12px;">↻ Refresh Feedback</button>
+            </div>
+          </div>
+
+          <!-- Feedback Overview Stat Cards -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px;">
+            <div class="admin-stat-card" style="padding: 16px;">
+              <div class="admin-stat-icon" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; width: 42px; height: 42px; font-size: 1.2rem;">💬</div>
+              <div class="admin-stat-content">
+                <h3 style="font-size: 0.78rem;">Total Feedback</h3>
+                <div class="stat-number" style="font-size: 1.5rem;" id="fbStatTotal">0</div>
+                <div class="stat-label">Submissions</div>
+              </div>
+            </div>
+
+            <div class="admin-stat-card" style="padding: 16px;">
+              <div class="admin-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706; width: 42px; height: 42px; font-size: 1.2rem;">⭐</div>
+              <div class="admin-stat-content">
+                <h3 style="font-size: 0.78rem;">Average Rating</h3>
+                <div class="stat-number" style="font-size: 1.5rem;" id="fbStatAvgRating">0.0</div>
+                <div class="stat-label" id="fbStatAvgStars">☆☆☆☆☆</div>
+              </div>
+            </div>
+
+            <div class="admin-stat-card" style="padding: 16px;">
+              <div class="admin-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; width: 42px; height: 42px; font-size: 1.2rem;">📊</div>
+              <div class="admin-stat-content">
+                <h3 style="font-size: 0.78rem;">Total Votes</h3>
+                <div class="stat-number" style="font-size: 1.5rem;" id="fbStatTotalVotes">0</div>
+                <div class="stat-label">Poll responses</div>
+              </div>
+            </div>
+
+            <div class="admin-stat-card" style="padding: 16px;">
+              <div class="admin-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981; width: 42px; height: 42px; font-size: 1.2rem;">🟢</div>
+              <div class="admin-stat-content">
+                <h3 style="font-size: 0.78rem;">100% Loved it</h3>
+                <div class="stat-number" style="font-size: 1.5rem; color: #10b981;" id="fbStat100">0</div>
+                <div class="stat-label" id="fbStat100Pct">0% of votes</div>
+              </div>
+            </div>
+
+            <div class="admin-stat-card" style="padding: 16px;">
+              <div class="admin-stat-icon" style="background: rgba(2, 132, 199, 0.15); color: #0284c7; width: 42px; height: 42px; font-size: 1.2rem;">🔵</div>
+              <div class="admin-stat-content">
+                <h3 style="font-size: 0.78rem;">75% Very Good</h3>
+                <div class="stat-number" style="font-size: 1.5rem; color: #0284c7;" id="fbStat75">0</div>
+                <div class="stat-label" id="fbStat75Pct">0% of votes</div>
+              </div>
+            </div>
+
+            <div class="admin-stat-card" style="padding: 16px;">
+              <div class="admin-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706; width: 42px; height: 42px; font-size: 1.2rem;">🟡</div>
+              <div class="admin-stat-content">
+                <h3 style="font-size: 0.78rem;">50% Average</h3>
+                <div class="stat-number" style="font-size: 1.5rem; color: #d97706;" id="fbStat50">0</div>
+                <div class="stat-label" id="fbStat50Pct">0% of votes</div>
+              </div>
+            </div>
+
+            <div class="admin-stat-card" style="padding: 16px;">
+              <div class="admin-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; width: 42px; height: 42px; font-size: 1.2rem;">🔴</div>
+              <div class="admin-stat-content">
+                <h3 style="font-size: 0.78rem;">0% Not Good</h3>
+                <div class="stat-number" style="font-size: 1.5rem; color: #ef4444;" id="fbStat0">0</div>
+                <div class="stat-label" id="fbStat0Pct">0% of votes</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video-Wise Analytics Breakdown -->
+          <div style="margin-bottom: 30px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--brand-blue-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span>📈 Video-Wise Performance &amp; Poll Breakdown</span>
+            </h3>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Lesson / Video</th>
+                    <th>Category</th>
+                    <th>Average Rating</th>
+                    <th>Total Reviews</th>
+                    <th>Poll Results Distribution</th>
+                  </tr>
+                </thead>
+                <tbody id="videoAnalyticsTableBody">
+                  <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading video analytics...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- All Feedback Records Filter Bar -->
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 14px; background: var(--bg-page); border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1;">
+              <input type="text" id="feedbackSearchInput" class="auth-input" placeholder="Search by student, email, comment..." style="min-width: 220px; max-width: 320px; padding: 7px 12px; font-size: 0.85rem;">
+              
+              <select id="feedbackFilterVideo" class="auth-input" style="width: auto; padding: 7px 12px; font-size: 0.85rem;">
+                <option value="All">All Videos</option>
+              </select>
+
+              <select id="feedbackFilterRating" class="auth-input" style="width: auto; padding: 7px 12px; font-size: 0.85rem;">
+                <option value="All">All Ratings</option>
+                <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                <option value="3">⭐⭐⭐ 3 Stars</option>
+                <option value="2">⭐⭐ 2 Stars</option>
+                <option value="1">⭐ 1 Star</option>
+              </select>
+
+              <select id="feedbackFilterPoll" class="auth-input" style="width: auto; padding: 7px 12px; font-size: 0.85rem;">
+                <option value="All">All Poll Options</option>
+                <option value="100% — Loved it">🟢 100% — Loved it</option>
+                <option value="75% — Very Good">🔵 75% — Very Good</option>
+                <option value="50% — Average">🟡 50% — Average</option>
+                <option value="0% — Not Good">🔴 0% — Not Good</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <label for="feedbackSort" style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);">Sort:</label>
+              <select id="feedbackSort" class="auth-input" style="width: auto; padding: 7px 12px; font-size: 0.85rem;">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="rating_high">Highest Rating</option>
+                <option value="rating_low">Lowest Rating</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- All Feedback Records Table -->
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Lesson</th>
+                  <th>Student Name</th>
+                  <th>Student Email</th>
+                  <th>Rating</th>
+                  <th>Poll Response</th>
+                  <th>Written Feedback</th>
+                  <th>Submitted (IST)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="feedbackTableBody">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading feedback records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -432,13 +607,67 @@
     </div>
   </div>
 
+  <!-- FEEDBACK DETAIL MODAL -->
+  <div class="video-modal" id="feedbackDetailModal">
+    <div class="video-modal-content" style="max-width: 580px; background: #fff; color: var(--text-primary); border-radius: var(--radius-lg); padding: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.25);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 14px;">
+        <div>
+          <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--brand-orange); background: rgba(249,115,22,0.12); padding: 3px 8px; border-radius: 4px;">Student Feedback Detail</span>
+          <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--brand-blue-dark); margin: 6px 0 0;" id="detailLessonTitle">—</h3>
+        </div>
+        <button type="button" id="closeFeedbackDetailBtn" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-muted);">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.9rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--bg-page); padding: 12px 16px; border-radius: 8px;">
+          <div>
+            <strong style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Student:</strong>
+            <span id="detailStudentName" style="font-weight: 600; color: var(--brand-blue-dark);">—</span>
+          </div>
+          <div>
+            <strong style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Email:</strong>
+            <span id="detailStudentEmail" style="color: var(--text-primary); word-break: break-all;">—</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); padding: 12px 16px; border-radius: 8px;">
+            <strong style="display: block; font-size: 0.75rem; color: #b45309; text-transform: uppercase;">Star Rating:</strong>
+            <div style="font-size: 1.2rem; color: #f59e0b; margin-top: 2px;" id="detailRatingStars">⭐⭐⭐⭐⭐</div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: #b45309;" id="detailRatingText">5 / 5 Stars</span>
+          </div>
+
+          <div style="background: rgba(2,132,199,0.08); border: 1px solid rgba(2,132,199,0.2); padding: 12px 16px; border-radius: 8px;">
+            <strong style="display: block; font-size: 0.75rem; color: #0369a1; text-transform: uppercase;">Poll Response:</strong>
+            <div style="font-size: 1rem; font-weight: 700; margin-top: 4px;" id="detailPollText">🟢 100% — Loved it</div>
+          </div>
+        </div>
+
+        <div>
+          <strong style="display: block; font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Written Feedback:</strong>
+          <div id="detailFeedbackText" style="background: var(--bg-page); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 14px; font-size: 0.92rem; line-height: 1.5; color: var(--text-primary); min-height: 80px; white-space: pre-wrap;">
+            No written feedback provided.
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-light); padding-top: 12px;">
+          <span>Submitted: <strong id="detailSubmittedAt">—</strong></span>
+          <button type="button" id="detailDeleteBtn" class="btn-table-action btn-table-delete" style="padding: 6px 12px;">
+            <span>🗑️ Delete Record</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Supabase Config & Admin Engine -->
-  <script src="assets/js/supabase-config.js?v=1.4"></script>
+  <script src="assets/js/supabase-config.js?v=1.5"></script>
   <script>
     let allUsersCache = [];
     let allLoginsCache = [];
     let allVideosCache = [];
     let allBookingsCache = [];
+    let allFeedbackCache = [];
 
     function copyToClipboard(text) {
       if (!text) return;
@@ -566,6 +795,38 @@
       const refreshBookingsBtn = document.getElementById('refreshBookingsBtn');
       if (refreshBookingsBtn) refreshBookingsBtn.addEventListener('click', loadBookings);
 
+      // Feedback event listeners & filters
+      const refreshFeedbackBtn = document.getElementById('refreshFeedbackBtn');
+      if (refreshFeedbackBtn) refreshFeedbackBtn.addEventListener('click', loadFeedback);
+
+      const fbSearch = document.getElementById('feedbackSearchInput');
+      if (fbSearch) fbSearch.addEventListener('input', renderFeedbackTable);
+
+      const fbVidFilter = document.getElementById('feedbackFilterVideo');
+      if (fbVidFilter) fbVidFilter.addEventListener('change', renderFeedbackTable);
+
+      const fbRateFilter = document.getElementById('feedbackFilterRating');
+      if (fbRateFilter) fbRateFilter.addEventListener('change', renderFeedbackTable);
+
+      const fbPollFilter = document.getElementById('feedbackFilterPoll');
+      if (fbPollFilter) fbPollFilter.addEventListener('change', renderFeedbackTable);
+
+      const fbSort = document.getElementById('feedbackSort');
+      if (fbSort) fbSort.addEventListener('change', renderFeedbackTable);
+
+      const closeFbDetailBtn = document.getElementById('closeFeedbackDetailBtn');
+      if (closeFbDetailBtn) {
+        closeFbDetailBtn.addEventListener('click', () => {
+          document.getElementById('feedbackDetailModal').classList.remove('active');
+        });
+      }
+      const feedbackDetailModal = document.getElementById('feedbackDetailModal');
+      if (feedbackDetailModal) {
+        feedbackDetailModal.addEventListener('click', (e) => {
+          if (e.target === feedbackDetailModal) feedbackDetailModal.classList.remove('active');
+        });
+      }
+
       // Video Modal logic
       initVideoModal();
     });
@@ -576,7 +837,8 @@
         loadUsers(),
         loadLoginActivity(),
         loadVideos(),
-        loadBookings()
+        loadBookings(),
+        loadFeedback()
       ]);
     }
 
@@ -589,6 +851,9 @@
         document.getElementById('statLoginsCount').textContent = totalLogins;
         document.getElementById('statVideosCount').textContent = stats.videos;
         document.getElementById('statBookingsCount').textContent = stats.bookings;
+
+        const statFb = document.getElementById('statFeedbackCount');
+        if (statFb) statFb.textContent = stats.feedback || allFeedbackCache.length;
       } catch (e) {
         console.error('loadStats error:', e);
       }
@@ -1003,12 +1268,330 @@
       `).join('');
     }
 
-    async function updateBookingStatus(id, newStatus) {
+    // --- VIDEO FEEDBACK & VOTING POLL MANAGEMENT ---
+    async function loadFeedback() {
       try {
-        await window.CNBookings.updateStatus(id, newStatus);
-        alert('Booking status updated to ' + newStatus);
+        const feedback = await window.CNFeedback.getAllFeedback();
+        allFeedbackCache = feedback || [];
+
+        const badge = document.getElementById('feedbackTabCountBadge');
+        if (badge) badge.textContent = `${allFeedbackCache.length} Feedback`;
+
+        renderFeedbackStats();
+        renderVideoAnalytics();
+        populateVideoFilter();
+        renderFeedbackTable();
       } catch (err) {
-        alert('Error updating status: ' + err.message);
+        console.error('loadFeedback error:', err);
+      }
+    }
+
+    function renderFeedbackStats() {
+      const total = allFeedbackCache.length;
+      const totalVotes = allFeedbackCache.filter(f => f.poll_response).length;
+
+      let sumRating = 0;
+      let c100 = 0, c75 = 0, c50 = 0, c0 = 0;
+
+      allFeedbackCache.forEach(f => {
+        sumRating += (f.rating || 0);
+        if (f.poll_response === '100% — Loved it') c100++;
+        else if (f.poll_response === '75% — Very Good') c75++;
+        else if (f.poll_response === '50% — Average') c50++;
+        else if (f.poll_response === '0% — Not Good') c0++;
+      });
+
+      const avgRating = total > 0 ? (sumRating / total).toFixed(1) : '0.0';
+      const pct100 = totalVotes > 0 ? Math.round((c100 / totalVotes) * 100) : 0;
+      const pct75 = totalVotes > 0 ? Math.round((c75 / totalVotes) * 100) : 0;
+      const pct50 = totalVotes > 0 ? Math.round((c50 / totalVotes) * 100) : 0;
+      const pct0 = totalVotes > 0 ? Math.round((c0 / totalVotes) * 100) : 0;
+
+      const fullStars = Math.round(Number(avgRating));
+      const starStr = '★'.repeat(Math.min(5, fullStars)) + '☆'.repeat(Math.max(0, 5 - fullStars));
+
+      const fbStatTotal = document.getElementById('fbStatTotal');
+      if (fbStatTotal) fbStatTotal.textContent = total;
+
+      const fbStatAvgRating = document.getElementById('fbStatAvgRating');
+      if (fbStatAvgRating) fbStatAvgRating.textContent = avgRating;
+
+      const fbStatAvgStars = document.getElementById('fbStatAvgStars');
+      if (fbStatAvgStars) fbStatAvgStars.textContent = total > 0 ? starStr : '☆☆☆☆☆';
+
+      const fbStatTotalVotes = document.getElementById('fbStatTotalVotes');
+      if (fbStatTotalVotes) fbStatTotalVotes.textContent = totalVotes;
+
+      const fbStat100 = document.getElementById('fbStat100');
+      if (fbStat100) fbStat100.textContent = c100;
+      const fbStat100Pct = document.getElementById('fbStat100Pct');
+      if (fbStat100Pct) fbStat100Pct.textContent = `${pct100}% of votes`;
+
+      const fbStat75 = document.getElementById('fbStat75');
+      if (fbStat75) fbStat75.textContent = c75;
+      const fbStat75Pct = document.getElementById('fbStat75Pct');
+      if (fbStat75Pct) fbStat75Pct.textContent = `${pct75}% of votes`;
+
+      const fbStat50 = document.getElementById('fbStat50');
+      if (fbStat50) fbStat50.textContent = c50;
+      const fbStat50Pct = document.getElementById('fbStat50Pct');
+      if (fbStat50Pct) fbStat50Pct.textContent = `${pct50}% of votes`;
+
+      const fbStat0 = document.getElementById('fbStat0');
+      if (fbStat0) fbStat0.textContent = c0;
+      const fbStat0Pct = document.getElementById('fbStat0Pct');
+      if (fbStat0Pct) fbStat0Pct.textContent = `${pct0}% of votes`;
+
+      const statFb = document.getElementById('statFeedbackCount');
+      if (statFb) statFb.textContent = total;
+      const statFbSub = document.getElementById('statFeedbackSubLabel');
+      if (statFbSub) statFbSub.textContent = `${total} Reviews • ★ ${avgRating}`;
+    }
+
+    function renderVideoAnalytics() {
+      const tbody = document.getElementById('videoAnalyticsTableBody');
+      if (!tbody) return;
+
+      const groups = {};
+      allFeedbackCache.forEach(f => {
+        const vid = f.video_id;
+        if (!groups[vid]) {
+          groups[vid] = {
+            id: vid,
+            title: f.videos?.title || 'Unknown Lesson',
+            lesson_number: f.videos?.lesson_number || '-',
+            category: f.videos?.category || 'AI Video Creation',
+            feedbacks: []
+          };
+        }
+        groups[vid].feedbacks.push(f);
+      });
+
+      allVideosCache.forEach(v => {
+        if (!groups[v.id]) {
+          groups[v.id] = {
+            id: v.id,
+            title: v.title,
+            lesson_number: v.lesson_number,
+            category: v.category,
+            feedbacks: []
+          };
+        }
+      });
+
+      const videoList = Object.values(groups).sort((a, b) => (a.lesson_number || 999) - (b.lesson_number || 999));
+
+      if (videoList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No videos found in database.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = videoList.map(v => {
+        const total = v.feedbacks.length;
+        let sumRating = 0;
+        let c100 = 0, c75 = 0, c50 = 0, c0 = 0;
+
+        v.feedbacks.forEach(f => {
+          sumRating += (f.rating || 0);
+          if (f.poll_response === '100% — Loved it') c100++;
+          else if (f.poll_response === '75% — Very Good') c75++;
+          else if (f.poll_response === '50% — Average') c50++;
+          else if (f.poll_response === '0% — Not Good') c0++;
+        });
+
+        const avg = total > 0 ? (sumRating / total).toFixed(1) : '—';
+        const p100 = total > 0 ? Math.round((c100 / total) * 100) : 0;
+        const p75 = total > 0 ? Math.round((c75 / total) * 100) : 0;
+        const p50 = total > 0 ? Math.round((c50 / total) * 100) : 0;
+        const p0 = total > 0 ? Math.round((c0 / total) * 100) : 0;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--brand-blue-dark);">Lesson #${escapeHtml(v.lesson_number)}: ${escapeHtml(v.title)}</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">ID: ${escapeHtml(v.id)}</div>
+            </td>
+            <td><span class="badge-role-user">${escapeHtml(v.category)}</span></td>
+            <td>
+              <strong style="color: #f59e0b; font-size: 1rem;">★ ${avg}</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${total > 0 ? '/ 5.0' : ''}</span>
+            </td>
+            <td><strong>${total}</strong> reviews</td>
+            <td style="min-width: 220px;">
+              ${total > 0 ? `
+                <div style="display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #e2e8f0; width: 100%; margin-bottom: 5px;">
+                  <div style="width: ${p100}%; background: #10b981;" title="100% Loved it: ${c100} (${p100}%)"></div>
+                  <div style="width: ${p75}%; background: #0284c7;" title="75% Very Good: ${c75} (${p75}%)"></div>
+                  <div style="width: ${p50}%; background: #f59e0b;" title="50% Average: ${c50} (${p50}%)"></div>
+                  <div style="width: ${p0}%; background: #ef4444;" title="0% Not Good: ${c0} (${p0}%)"></div>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap;">
+                  <span>🟢 ${p100}%</span>
+                  <span>🔵 ${p75}%</span>
+                  <span>🟡 ${p50}%</span>
+                  <span>🔴 ${p0}%</span>
+                </div>
+              ` : `<span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">No votes yet</span>`}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function populateVideoFilter() {
+      const select = document.getElementById('feedbackFilterVideo');
+      if (!select) return;
+
+      const currentVal = select.value;
+      const seen = new Set();
+      let html = '<option value="All">All Videos</option>';
+
+      allVideosCache.forEach(v => {
+        if (!seen.has(v.id)) {
+          seen.add(v.id);
+          html += `<option value="${escapeHtml(v.id)}">Lesson #${v.lesson_number}: ${escapeHtml(v.title)}</option>`;
+        }
+      });
+
+      allFeedbackCache.forEach(f => {
+        if (f.video_id && !seen.has(f.video_id)) {
+          seen.add(f.video_id);
+          const title = f.videos?.title || f.video_id;
+          const lesson = f.videos?.lesson_number ? `Lesson #${f.videos.lesson_number}: ` : '';
+          html += `<option value="${escapeHtml(f.video_id)}">${lesson}${escapeHtml(title)}</option>`;
+        }
+      });
+
+      select.innerHTML = html;
+      select.value = currentVal || 'All';
+    }
+
+    function renderFeedbackTable() {
+      const tbody = document.getElementById('feedbackTableBody');
+      if (!tbody) return;
+
+      const query = (document.getElementById('feedbackSearchInput')?.value || '').toLowerCase().trim();
+      const videoFilter = document.getElementById('feedbackFilterVideo')?.value || 'All';
+      const ratingFilter = document.getElementById('feedbackFilterRating')?.value || 'All';
+      const pollFilter = document.getElementById('feedbackFilterPoll')?.value || 'All';
+      const sortVal = document.getElementById('feedbackSort')?.value || 'newest';
+
+      let filtered = allFeedbackCache.filter(f => {
+        if (videoFilter !== 'All' && f.video_id !== videoFilter) return false;
+        if (ratingFilter !== 'All' && f.rating !== parseInt(ratingFilter, 10)) return false;
+        if (pollFilter !== 'All' && f.poll_response !== pollFilter) return false;
+
+        if (query) {
+          const emailMatch = f.user_email && f.user_email.toLowerCase().includes(query);
+          const textMatch = f.feedback_text && f.feedback_text.toLowerCase().includes(query);
+          const videoMatch = f.videos?.title && f.videos.title.toLowerCase().includes(query);
+          if (!emailMatch && !textMatch && !videoMatch) return false;
+        }
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'newest') return new Date(b.created_at) - new Date(a.created_at);
+        if (sortVal === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
+        if (sortVal === 'rating_high') return (b.rating || 0) - (a.rating || 0);
+        if (sortVal === 'rating_low') return (a.rating || 0) - (b.rating || 0);
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">No feedback matches your filter criteria.</td></tr>`;
+        return;
+      }
+
+      const pollBadgeStyles = {
+        '100% — Loved it': 'background: #dcfce7; color: #15803d;',
+        '75% — Very Good': 'background: #e0f2fe; color: #0369a1;',
+        '50% — Average': 'background: #fef3c7; color: #b45309;',
+        '0% — Not Good': 'background: #fee2e2; color: #b91c1c;'
+      };
+
+      tbody.innerHTML = filtered.map(f => {
+        const starStr = '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating);
+        const pollStyle = pollBadgeStyles[f.poll_response] || 'background: #f1f5f9; color: #475569;';
+        const truncatedFeedback = f.feedback_text ? (f.feedback_text.length > 55 ? f.feedback_text.substring(0, 55) + '...' : f.feedback_text) : '';
+
+        const matchedUser = allUsersCache.find(u => u.id === f.user_id || u.email === f.user_email);
+        const studentName = matchedUser?.name || 'Verified Student';
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--brand-blue-dark);">Lesson #${escapeHtml(f.videos?.lesson_number || '-')}</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(f.videos?.title || '')}">
+                ${escapeHtml(f.videos?.title || 'Unknown Video')}
+              </div>
+            </td>
+            <td><strong>${escapeHtml(studentName)}</strong></td>
+            <td>
+              <div>${escapeHtml(f.user_email)}</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${escapeHtml(f.user_id.substring(0, 8))}...</div>
+            </td>
+            <td>
+              <div style="color: #f59e0b; font-size: 0.95rem; white-space: nowrap;">${starStr}</div>
+              <span style="font-size: 0.75rem; font-weight: 700; color: #b45309;">${f.rating} / 5</span>
+            </td>
+            <td>
+              <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; ${pollStyle}">
+                ${escapeHtml(f.poll_response)}
+              </span>
+            </td>
+            <td style="max-width: 220px;">
+              ${truncatedFeedback ? `<span title="${escapeHtml(f.feedback_text)}">${escapeHtml(truncatedFeedback)}</span>` : `<span style="color: var(--text-muted); font-style: italic; font-size: 0.8rem;">No comment</span>`}
+            </td>
+            <td>${formatDate(f.created_at)}</td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="btn-table-action" onclick="showFeedbackDetail('${f.id}')">View</button>
+                <button type="button" class="btn-table-action btn-table-delete" onclick="deleteFeedbackItem('${f.id}')">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function showFeedbackDetail(id) {
+      const fb = allFeedbackCache.find(f => f.id === id);
+      if (!fb) return;
+
+      const matchedUser = allUsersCache.find(u => u.id === fb.user_id || u.email === fb.user_email);
+      const studentName = matchedUser?.name || 'Verified Student';
+
+      document.getElementById('detailLessonTitle').textContent = `Lesson #${fb.videos?.lesson_number || '-'}: ${fb.videos?.title || 'Unknown Video'}`;
+      document.getElementById('detailStudentName').textContent = studentName;
+      document.getElementById('detailStudentEmail').textContent = fb.user_email;
+
+      const starStr = '★'.repeat(fb.rating) + '☆'.repeat(5 - fb.rating);
+      document.getElementById('detailRatingStars').textContent = starStr;
+      document.getElementById('detailRatingText').textContent = `${fb.rating} / 5 Stars`;
+
+      document.getElementById('detailPollText').textContent = fb.poll_response;
+      document.getElementById('detailFeedbackText').textContent = fb.feedback_text || 'No written feedback provided.';
+      document.getElementById('detailSubmittedAt').textContent = formatDateTime(fb.created_at);
+
+      const deleteBtn = document.getElementById('detailDeleteBtn');
+      if (deleteBtn) {
+        deleteBtn.onclick = () => deleteFeedbackItem(id);
+      }
+
+      document.getElementById('feedbackDetailModal').classList.add('active');
+    }
+
+    async function deleteFeedbackItem(id) {
+      if (!confirm('Are you sure you want to permanently delete this student feedback record?')) return;
+      try {
+        await window.CNFeedback.deleteFeedback(id);
+        document.getElementById('feedbackDetailModal')?.classList.remove('active');
+        await loadFeedback();
+        await loadStats();
+      } catch (err) {
+        alert('Error deleting feedback: ' + err.message);
       }
     }
 

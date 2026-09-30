@@ -616,27 +616,156 @@
     }
   };
 
+  // --- VIDEO FEEDBACK & VOTING POLL API ---
+  const CNFeedback = {
+    // Get single feedback submitted by a user for a video (if any)
+    getUserFeedback: async (videoId, userId) => {
+      if (!supabaseClient || !videoId || !userId) return null;
+      try {
+        const { data, error } = await supabaseClient
+          .from('video_feedback')
+          .select('*')
+          .eq('video_id', videoId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (error) {
+          console.warn('CNFeedback.getUserFeedback warning:', error);
+          return null;
+        }
+        return data;
+      } catch (err) {
+        console.error('CNFeedback.getUserFeedback catch error:', err);
+        return null;
+      }
+    },
+
+    // Submit or update user feedback with duplicate protection
+    submitFeedback: async (payload) => {
+      if (!supabaseClient) throw new Error('Supabase client not initialized.');
+      if (!payload.video_id || !payload.user_id || !payload.rating || !payload.poll_response) {
+        throw new Error('Please select a star rating and poll option.');
+      }
+
+      const feedbackData = {
+        video_id: payload.video_id,
+        user_id: payload.user_id,
+        user_email: payload.user_email || '',
+        rating: parseInt(payload.rating, 10),
+        poll_response: payload.poll_response,
+        feedback_text: (payload.feedback_text || '').trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Check if record already exists to perform idempotent update or insert
+      const { data: existing } = await supabaseClient
+        .from('video_feedback')
+        .select('id')
+        .eq('video_id', payload.video_id)
+        .eq('user_id', payload.user_id)
+        .maybeSingle();
+
+      if (existing && existing.id) {
+        const { error } = await supabaseClient
+          .from('video_feedback')
+          .update(feedbackData)
+          .eq('id', existing.id);
+
+        if (error) throw error;
+        return { success: true, updated: true, id: existing.id, ...feedbackData };
+      } else {
+        const { error } = await supabaseClient
+          .from('video_feedback')
+          .insert([feedbackData]);
+
+        if (error) throw error;
+        return { success: true, updated: false, ...feedbackData };
+      }
+    },
+
+    // Fetch all feedback with lesson metadata (Admin view)
+    getAllFeedback: async () => {
+      if (!supabaseClient) return [];
+      try {
+        const { data, error } = await supabaseClient
+          .from('video_feedback')
+          .select(`
+            *,
+            videos (
+              id,
+              title,
+              lesson_number,
+              category
+            )
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.warn('getAllFeedback join fallback:', error);
+          // Fallback manual join
+          const { data: fbData, error: fbError } = await supabaseClient
+            .from('video_feedback')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (fbError) throw fbError;
+
+          const { data: vidData } = await supabaseClient
+            .from('videos')
+            .select('id, title, lesson_number, category');
+
+          const vidMap = {};
+          (vidData || []).forEach(v => { vidMap[v.id] = v; });
+
+          return (fbData || []).map(fb => ({
+            ...fb,
+            videos: vidMap[fb.video_id] || null
+          }));
+        }
+
+        return data || [];
+      } catch (err) {
+        console.error('getAllFeedback error:', err);
+        return [];
+      }
+    },
+
+    // Delete feedback record (Admin only)
+    deleteFeedback: async (id) => {
+      if (!supabaseClient) throw new Error('Supabase client not initialized.');
+      const { error } = await supabaseClient
+        .from('video_feedback')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    }
+  };
+
   // --- ADMIN ANALYTICS & USER MANAGEMENT API ---
   const CNAdmin = {
     getDashboardStats: async () => {
-      if (!supabaseClient) return { users: 0, logins: 0, videos: 0, bookings: 0 };
+      if (!supabaseClient) return { users: 0, logins: 0, videos: 0, bookings: 0, feedback: 0 };
       try {
         const results = await Promise.allSettled([
           supabaseClient.from('profiles').select('id', { count: 'exact', head: true }),
           supabaseClient.from('login_activity').select('id', { count: 'exact', head: true }),
           supabaseClient.from('videos').select('id', { count: 'exact', head: true }),
-          supabaseClient.from('bookings').select('id', { count: 'exact', head: true })
+          supabaseClient.from('bookings').select('id', { count: 'exact', head: true }),
+          supabaseClient.from('video_feedback').select('id', { count: 'exact', head: true })
         ]);
 
         return {
           users: (results[0].status === 'fulfilled' && typeof results[0].value?.count === 'number') ? results[0].value.count : 0,
           logins: (results[1].status === 'fulfilled' && typeof results[1].value?.count === 'number') ? results[1].value.count : 0,
           videos: (results[2].status === 'fulfilled' && typeof results[2].value?.count === 'number') ? results[2].value.count : 0,
-          bookings: (results[3].status === 'fulfilled' && typeof results[3].value?.count === 'number') ? results[3].value.count : 0
+          bookings: (results[3].status === 'fulfilled' && typeof results[3].value?.count === 'number') ? results[3].value.count : 0,
+          feedback: (results[4].status === 'fulfilled' && typeof results[4].value?.count === 'number') ? results[4].value.count : 0
         };
       } catch (err) {
         console.error('getDashboardStats error:', err);
-        return { users: 0, logins: 0, videos: 0, bookings: 0 };
+        return { users: 0, logins: 0, videos: 0, bookings: 0, feedback: 0 };
       }
     },
 
@@ -719,6 +848,7 @@
   window.CNAuth = CNAuth;
   window.CNVideos = CNVideos;
   window.CNBookings = CNBookings;
+  window.CNFeedback = CNFeedback;
   window.CNAdmin = CNAdmin;
   window.supabaseClient = supabaseClient;
 })();

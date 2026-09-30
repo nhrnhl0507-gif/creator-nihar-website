@@ -351,6 +351,8 @@
     } else if (action.startsWith('edit_field_')) {
       const field = action.replace('edit_field_', '');
       executeEditField(field);
+    } else if (action === 'go_to_learning') {
+      window.location.href = 'learning.html';
     }
   }
 
@@ -358,6 +360,43 @@
      CREATOR NIHAR VERIFIED KNOWLEDGE BASE & Q&A ENGINE
      ========================================================================== */
   const CREATOR_NIHAR_KB = [
+    {
+      id: 'video_feedback_learning',
+      phrases: [
+        'how to rate', 'give feedback', 'video feedback', 'rate lesson', 'lesson rating',
+        'rate video', 'feedback kaise de', 'rating kaise kare', 'poll kaise kare',
+        'video poll', 'feedback option', 'rate this lesson', 'review lesson',
+        'रेटिंग कैसे दें', 'फीडबैक कैसे दें', 'वीडियो रेटिंग'
+      ],
+      keywords: [
+        'feedback', 'rating', 'rate', 'poll', 'stars', 'review', 'lesson', 'learning',
+        'रेटिंग', 'फीडबैक', 'पोल'
+      ],
+      answers: {
+        en: `
+          You can easily rate and review any AI Video Lesson in the <strong><a href="learning.html" style="color:var(--primary,#f39c12);">AI Video Learning Portal</a></strong>:<br><br>
+          • <strong>Automatic Prompt:</strong> When you complete watching a lesson, a feedback popup appears automatically with 1–5 stars and a voting poll.<br>
+          • <strong>Manual Rating:</strong> You can click the <strong>⭐ Rate this Lesson</strong> button on any lesson card or video player at any time.<br>
+          • <strong>Edit Anytime:</strong> If you've already rated, you can reopen it to update your feedback whenever you want!
+        `,
+        hi: `
+          आप <strong><a href="learning.html" style="color:var(--primary,#f39c12);">AI Video Learning Portal</a></strong> पर किसी भी लेसन को आसानी से रेटिंग व फीडबैक दे सकते हैं:<br><br>
+          • <strong>ऑटोमैटिक पॉपअप:</strong> वीडियो पूरा देखने के बाद 1–5 स्टार रेटिंग और वोटिंग पोल (100%, 75%, 50%, 0%) का पॉपअप अपने आप खुल जाता है।<br>
+          • <strong>मैनुअल रेटिंग:</strong> किसी भी वीडियो कार्ड या प्लेयर में <strong>⭐ Rate this Lesson</strong> बटन पर क्लिक करके कभी भी रेटिंग दे सकते हैं।<br>
+          • <strong>अपडेट की सुविधा:</strong> आप अपना सबमिट किया हुआ फीडबैक कभी भी बदल या अपडेट कर सकते हैं!
+        `,
+        hinglish: `
+          Aap <strong><a href="learning.html" style="color:var(--primary,#f39c12);">AI Video Learning Portal</a></strong> par kisi bhi lesson ko aasani se feedback aur rating de sakte hain:<br><br>
+          • <strong>Auto Popup:</strong> Lesson finish hote hi 1–5 stars aur 4-option voting poll ka popup automatically show hoga.<br>
+          • <strong>Manual Rating:</strong> Kisi bhi video card ya video player me <strong>⭐ Rate this Lesson</strong> button dabakar bhi kabhi bhi rating de sakte hain.<br>
+          • <strong>Edit Feature:</strong> Aap apna pehle se diya gaya feedback kisi bhi samay update kar sakte hain!
+        `
+      },
+      buttons: [
+        { text: '🎬 AI Video Learning', action: 'go_to_learning' },
+        { text: '📋 Service Book करें', action: 'start_booking', primary: true }
+      ]
+    },
     {
       id: 'founder_nihar',
       phrases: [
