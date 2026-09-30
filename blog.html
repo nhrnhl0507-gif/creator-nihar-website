@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog & Digital Insights | Creator Nihar — AI Video & Web Development</title>
+  <meta name="description" content="Explore actionable guides, insights, and industry analysis on AI video creation, modern web development, prompt engineering, and digital growth by Nihar Amrawat.">
+  <meta name="keywords" content="Creator Nihar Blog, AI video guide, AI website development insights, prompt engineering, Nihar Amrawat, Udaipur digital creator">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://creatornihar.co.in/blog">
+  <meta name="theme-color" content="#0A4E8C">
+
+  <!-- OpenGraph Meta Tags -->
+  <meta property="og:title" content="Blog & Digital Insights | Creator Nihar">
+  <meta property="og:description" content="Actionable guides and analysis on AI video creation, modern website development, and digital marketing.">
+  <meta property="og:url" content="https://creatornihar.co.in/blog">
+  <meta property="og:site_name" content="Creator Nihar">
+  <meta property="og:image" content="https://creatornihar.co.in/assets/images/logo.jpg">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Blog & Digital Insights | Creator Nihar">
+  <meta name="twitter:description" content="Actionable guides and analysis on AI video creation, modern website development, and digital marketing.">
+  <meta name="twitter:image" content="https://creatornihar.co.in/assets/images/logo.jpg">
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/images/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/images/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/images/favicon-192x192.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+
+  <!-- Structured Data: CollectionPage & BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://creatornihar.co.in/blog#collection",
+        "url": "https://creatornihar.co.in/blog",
+        "name": "Blog & Digital Insights | Creator Nihar",
+        "description": "Explore actionable guides, insights, and industry analysis on AI video creation, modern web development, prompt engineering, and digital growth by Nihar Amrawat.",
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://creatornihar.co.in/#website",
+          "name": "Creator Nihar",
+          "url": "https://creatornihar.co.in/"
+        },
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://creatornihar.co.in/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Blog",
+              "item": "https://creatornihar.co.in/blog"
+            }
+          ]
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Shiva AI Chatbot Stylesheet -->
+  <link rel="stylesheet" href="assets/css/shiva.css">
+
+  <!-- Auth Stylesheet -->
+  <link rel="stylesheet" href="assets/css/auth.css">
+
+  <!-- Supabase JS CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ========================================================================
+       STICKY NAVBAR
+       ======================================================================== -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo-link" aria-label="Creator Nihar Home">
+        <img src="assets/images/logo.jpg" alt="Creator Nihar Logo" class="brand-logo-img" width="180" height="98">
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="nav-menu" id="navMenu">
+        <a href="index.html#home" class="nav-link">Home</a>
+        <a href="learning.html" class="nav-link">AI Video Learning</a>
+        <a href="index.html#services" class="nav-link">Services</a>
+        <a href="index.html#pricing" class="nav-link">Pricing</a>
+        <a href="index.html#why-us" class="nav-link">Why Choose Me</a>
+        <a href="index.html#process" class="nav-link">Process</a>
+        <a href="index.html#about" class="nav-link">About</a>
+        <a href="index.html#owner" class="nav-link">Owner</a>
+        <a href="blog.html" class="nav-link active">Blog</a>
+        <a href="index.html#faq" class="nav-link">FAQ</a>
+        <a href="index.html#contact" class="nav-link">Contact</a>
+        <a href="free-consultation.html" class="nav-link nav-link-consultation">Free Consultation</a>
+      </nav>
+
+      <!-- Right Action & Mobile Toggle -->
+      <div class="nav-actions">
+        <div class="nav-auth-actions" id="navAuthActions"></div>
+
+        <a href="https://wa.me/917723913729?text=Hello%20Nihar,%20I%20have%20a%20question%20about%20your%20blog." target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp nav-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+          </svg>
+          <span>WhatsApp</span>
+        </a>
+
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Navigation Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       BREADCRUMB BAR
+       ======================================================================== -->
+  <div class="breadcrumb-nav">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-separator">/</li>
+        <li class="breadcrumb-item active" aria-current="page">Blog</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       BLOG HERO
+       ======================================================================== -->
+  <section class="blog-hero">
+    <div class="container">
+      <div class="section-tag" style="display: inline-flex; margin-bottom: 16px;"><span class="dot"></span><span>Knowledge Base</span></div>
+      <h1 class="section-title">Insights, Guides & <span class="text-gradient">Digital Intelligence</span></h1>
+      <p class="section-subtitle" style="max-width: 680px; margin: 0 auto;">
+        Practical, in-depth articles on generative AI video production, high-performance website development, and ethical web engineering by Nihar Amrawat.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       BLOG ARTICLES GRID
+       ======================================================================== -->
+  <section class="section" style="padding-top: 10px;">
+    <div class="container">
+      <div class="blog-grid">
+
+        <!-- Article 1 -->
+        <a href="blog/what-is-ai-video-creation.html" class="blog-card">
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-tag">AI Video</span>
+              <span>•</span>
+              <span>September 2026</span>
+            </div>
+            <h2 class="blog-card-title">What is AI Video Creation? The Complete Guide to Generative Video</h2>
+            <p class="blog-card-excerpt">
+              Understand how generative diffusion models, neural motion synthesis, and AI prompt engineering transform simple concepts into cinematic commercial videos.
+            </p>
+            <div class="blog-card-footer">
+              <span>Read Full Article</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Article 2 -->
+        <a href="blog/how-ai-is-changing-website-creation.html" class="blog-card">
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-tag">Web Development</span>
+              <span>•</span>
+              <span>September 2026</span>
+            </div>
+            <h2 class="blog-card-title">How AI Is Changing Modern Website Creation: Speed, UI & Code Quality</h2>
+            <p class="blog-card-excerpt">
+              Explore how AI-assisted engineering accelerates development while delivering cleaner semantic code, accessible UI/UX, and sub-second Core Web Vitals.
+            </p>
+            <div class="blog-card-footer">
+              <span>Read Full Article</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Article 3 -->
+        <a href="blog/ai-videos-for-business-marketing.html" class="blog-card">
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-tag">Marketing</span>
+              <span>•</span>
+              <span>September 2026</span>
+            </div>
+            <h2 class="blog-card-title">Why AI Videos Are the Secret Weapon for Modern Business Marketing</h2>
+            <p class="blog-card-excerpt">
+              Why vertical short-form reels and shorts command algorithmic engagement on social platforms, and how businesses scale video production cost-effectively.
+            </p>
+            <div class="blog-card-footer">
+              <span>Read Full Article</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Article 4 -->
+        <a href="blog/ai-website-vs-traditional-development.html" class="blog-card">
+          <div class="blog-card-body">
+            <div class="blog-card-meta">
+              <span class="blog-tag">Comparison</span>
+              <span>•</span>
+              <span>September 2026</span>
+            </div>
+            <h2 class="blog-card-title">AI-Powered Websites vs Traditional Web Development: Comparison & Costs</h2>
+            <p class="blog-card-excerpt">
+              A comprehensive head-to-head comparison of development turnaround, engineering overhead, mobile responsiveness, and long-term maintainability.
+            </p>
+            <div class="blog-card-footer">
+              <span>Read Full Article</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FOOTER
+       ======================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="brand-logo-link">
+            <img src="assets/images/logo.jpg" alt="Creator Nihar Logo" class="brand-logo-img" width="180" height="98" loading="lazy">
+          </a>
+          <p class="footer-tagline">
+            Creative Minds. Digital Excellence. Professional AI Video Creation & AI Website Development based in Udaipur, Rajasthan, India.
+          </p>
+          <div class="footer-socials">
+            <a href="https://wa.me/917723913729" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            </a>
+            <a href="https://instagram.com/creatornihar" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </a>
+            <a href="https://youtube.com/@creatornihar" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+            <a href="https://linkedin.com/in/creatornihar" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-links-col">
+          <h4 class="footer-heading">Services</h4>
+          <ul class="footer-links">
+            <li><a href="ai-video-creation.html">AI Video Creation</a></li>
+            <li><a href="ai-website-development.html">AI Website Development</a></li>
+            <li><a href="learning.html">AI Video Learning</a></li>
+            <li><a href="free-consultation.html">Free Consultation</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <h4 class="footer-heading">Company</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#about">About Founder</a></li>
+            <li><a href="index.html#why-us">Why Choose Us</a></li>
+            <li><a href="index.html#process">Workflow</a></li>
+            <li><a href="blog.html">Blog & Insights</a></li>
+            <li><a href="index.html#faq">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <h4 class="footer-heading">Contact & Location</h4>
+          <div class="footer-contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <div>Udaipur, Rajasthan, India</div>
+          </div>
+          <div class="footer-contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <div>WhatsApp: <a href="https://wa.me/917723913729">+91 7723913729</a></div>
+          </div>
+          <div class="footer-contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <div>Email: <a href="mailto:nhrnhl0507@gmail.com">nhrnhl0507@gmail.com</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 <strong>Creator Nihar</strong>. All rights reserved. Creative Minds. Digital Excellence.</div>
+        <div class="footer-bottom-links">
+          <a href="index.html#services">Services</a>
+          <a href="index.html#pricing">Pricing</a>
+          <a href="blog.html">Blog</a>
+          <a href="index.html#faq">FAQ</a>
+          <a href="free-consultation.html">Free Consultation</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating WhatsApp -->
+  <a href="https://wa.me/917723913729?text=Hello%20Nihar,%20I%20have%20a%20question." target="_blank" rel="noopener noreferrer" class="floating-whatsapp" aria-label="Chat on WhatsApp with Creator Nihar">
+    <div class="whatsapp-pulse"></div>
+    <span class="whatsapp-tooltip">Chat with Creator Nihar</span>
+    <svg viewBox="0 0 24 24">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+    </svg>
+  </a>
+
+  <!-- Supabase Config & Auth Controller -->
+  <script src="assets/js/supabase-config.js?v=1.3"></script>
+
+  <!-- Shiva AI Chatbot Controller -->
+  <script src="assets/js/shiva.js?v=2.3"></script>
+
+  <!-- Mobile Toggle Script -->
+  <script>
+    const mobileToggle = document.getElementById('mobileToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (mobileToggle && navMenu) {
+      mobileToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+        mobileToggle.classList.toggle('active');
+      });
+    }
+  </script>
+</body>
+</html>
