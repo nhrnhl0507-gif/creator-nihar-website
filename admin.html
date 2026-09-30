@@ -433,7 +433,7 @@
   </div>
 
   <!-- Supabase Config & Admin Engine -->
-  <script src="assets/js/supabase-config.js?v=1.3"></script>
+  <script src="assets/js/supabase-config.js?v=1.4"></script>
   <script>
     let allUsersCache = [];
     let allLoginsCache = [];
@@ -847,14 +847,34 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        videoProgress.textContent = `Uploading ${file.name} to Supabase Storage ('videos' bucket)...`;
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        if (file.size > 50 * 1024 * 1024) {
+          videoProgress.innerHTML = `<span style="color: #b45309; font-weight: 600;">⚠️ Selected file is ${fileSizeMB} MB. Supabase Free Tier has a 50MB file size limit. Uploading...</span>`;
+        } else {
+          videoProgress.textContent = `Uploading ${file.name} (${fileSizeMB} MB) to Supabase Storage ('videos' bucket)...`;
+        }
+
         try {
           const publicOrSignedUrl = await window.CNVideos.uploadVideoFile(file);
           document.getElementById('videoUrl').value = publicOrSignedUrl;
           videoProgress.innerHTML = `<span style="color: #16a34a; font-weight: 700;">✓ Uploaded successfully! Stream URL generated.</span>`;
         } catch (err) {
           console.error(err);
-          videoProgress.innerHTML = `<span style="color: #dc2626;">Upload failed: ${err.message}</span>`;
+          const isSizeError = err.message && (err.message.includes('exceeded the maximum') || err.message.includes('413') || file.size > 50 * 1024 * 1024);
+          if (isSizeError) {
+            videoProgress.innerHTML = `
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px; margin-top: 6px;">
+                <span style="color: #dc2626; font-weight: 700;">Upload failed: File size (${fileSizeMB} MB) exceeds Supabase Storage limit (50 MB).</span>
+                <p style="margin: 4px 0 0; font-size: 0.8rem; color: #475569; line-height: 1.4;">
+                  <strong>How to proceed:</strong><br>
+                  • If a Stream URL is already filled above, keep it and click <strong>Save Lesson</strong>.<br>
+                  • Or compress your video under 50MB (using HandBrake / free MP4 compressor).<br>
+                  • Or paste any external video link (Google Drive direct, Vimeo, Cloudflare Stream, YouTube) into <em>Video Stream URL</em> above.
+                </p>
+              </div>`;
+          } else {
+            videoProgress.innerHTML = `<span style="color: #dc2626;">Upload failed: ${err.message}</span>`;
+          }
         }
       });
 

@@ -459,14 +459,16 @@
     // Insert new video (Admin only)
     createVideo: async (videoData) => {
       if (!supabaseClient) throw new Error('Supabase client not initialized.');
+      // Plain insert without demanding RETURNING representation first to prevent SELECT RLS race conditions
       const { data, error } = await supabaseClient
         .from('videos')
-        .insert([videoData])
-        .select()
-        .single();
+        .insert([videoData]);
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('CNVideos.createVideo database error:', error);
+        throw error;
+      }
+      return { success: true, ...videoData };
     },
 
     // Update video (Admin only)
@@ -475,12 +477,13 @@
       const { data, error } = await supabaseClient
         .from('videos')
         .update(videoData)
-        .eq('id', id)
-        .select()
-        .single();
+        .eq('id', id);
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('CNVideos.updateVideo database error:', error);
+        throw error;
+      }
+      return { success: true, id, ...videoData };
     },
 
     // Delete video (Admin only)
