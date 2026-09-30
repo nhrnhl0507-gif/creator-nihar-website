@@ -1,13 +1,12 @@
 /**
  * CREATOR NIHAR - FREE CONSULTATION CONTROLLER
  * Ensures reliable delivery of consultation requests to nhrnhl0507@gmail.com
- * Handles native FormSubmit POST for file:// and online hosting,
- * sets up dynamic email subject & redirect targets, and renders the success state.
+ * Handles AJAX Web3Forms submission, Supabase booking database integration,
+ * dynamic email subjects & WhatsApp messages, and renders the success state.
  */
 
 // Web3Forms Access Key configuration for nhrnhl0507@gmail.com
 const WEB3FORMS_ACCESS_KEY = "c5f04805-e094-4297-87ec-73f55acf118d";
-
 
 document.addEventListener('DOMContentLoaded', () => {
   initConsultationForm();
@@ -42,13 +41,14 @@ function checkUrlSuccessState() {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('success') === 'true') {
     const data = {
+      bookingId: urlParams.get('ref') || `CN-CS-${Date.now().toString().slice(-6)}`,
       clientName: urlParams.get('name') || 'Valued Client',
       clientEmail: urlParams.get('email') || 'Provided',
       whatsapp: urlParams.get('phone') || 'Provided',
       selectedService: urlParams.get('service') || 'Consultation',
       preferredDate: urlParams.get('date') || 'Selected Date',
       preferredTime: urlParams.get('time') || 'Selected Time',
-      timeZone: urlParams.get('tz') || 'IST'
+      timeZone: urlParams.get('tz') || 'India Standard Time (IST)'
     };
     renderSuccessScreen(data);
   }
@@ -76,14 +76,13 @@ function initConsultationForm() {
 
   if (!form || !submitBtn) return;
 
-  // Ensure form targets the invisible iframe so the main page never leaves or shows resubmission prompts
-  form.setAttribute('target', 'hidden_form_iframe');
+  form.addEventListener('submit', async (e) => {
+    // Prevent default form navigation / reload
+    e.preventDefault();
 
-  form.addEventListener('submit', (e) => {
     // Validate native form inputs
     if (!form.checkValidity()) {
       form.reportValidity();
-      e.preventDefault();
       return;
     }
 
@@ -91,35 +90,33 @@ function initConsultationForm() {
     if (checkbox && !checkbox.checked) {
       alert('Please check the confirmation box to proceed.');
       checkbox.focus();
-      e.preventDefault();
       return;
     }
 
-    // Extract values
-    const clientName = document.getElementById('fullName').value.trim();
-    const clientEmail = document.getElementById('emailAddress').value.trim();
-    const whatsapp = document.getElementById('whatsappNumber').value.trim();
-    const company = document.getElementById('companyName').value.trim() || 'Not specified';
-    const selectedService = document.getElementById('selectService').value;
-    const businessName = document.getElementById('projectName').value.trim() || 'Not specified';
-    const discussionTopic = document.getElementById('discussionTopic').value.trim();
-    const projectDetails = document.getElementById('projectDetails').value.trim();
-    const preferredDate = document.getElementById('preferredDate').value;
-    const preferredTime = document.getElementById('preferredTime').value;
-    const timeZone = document.getElementById('timeZone').value;
-    const expectedBudget = document.getElementById('expectedBudget').value.trim() || 'To be discussed';
-    const additionalMessage = document.getElementById('additionalMessage').value.trim() || 'None';
+    // Extract values cleanly
+    const clientName = (document.getElementById('fullName')?.value || '').trim();
+    const clientEmail = (document.getElementById('emailAddress')?.value || '').trim();
+    const whatsapp = (document.getElementById('whatsappNumber')?.value || '').trim();
+    const company = (document.getElementById('companyName')?.value || '').trim() || 'Not specified';
+    const selectedService = document.getElementById('selectService')?.value || 'General Consultation';
+    const businessName = (document.getElementById('projectName')?.value || '').trim() || 'Not specified';
+    const discussionTopic = (document.getElementById('discussionTopic')?.value || '').trim();
+    const projectDetails = (document.getElementById('projectDetails')?.value || '').trim();
+    const preferredDate = document.getElementById('preferredDate')?.value || '';
+    const preferredTime = document.getElementById('preferredTime')?.value || '';
+    const timeZone = document.getElementById('timeZone')?.value || 'India Standard Time (IST)';
+    const expectedBudget = (document.getElementById('expectedBudget')?.value || '').trim() || 'To be discussed';
+    const additionalMessage = (document.getElementById('additionalMessage')?.value || '').trim() || 'None';
 
-    const emailSubject = `New Free Consultation Request - ${clientName}`;
-
-    // Set FormSubmit hidden configuration inputs
-    const subjectInput = document.getElementById('emailSubjectInput');
-    if (subjectInput) subjectInput.value = emailSubject;
+    // Unique Booking ID for tracking in Supabase and notifications
+    const bookingId = `CN-CS-${Date.now().toString().slice(-6)}${Math.floor(10 + Math.random() * 90)}`;
+    const emailSubject = `New Free Consultation Request - ${clientName || 'Valued Client'} [${bookingId}]`;
 
     // Button loading feedback
+    const originalBtnHtml = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = `
-      <svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;">
+      <svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;">
         <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
         <path d="M12 2a10 10 0 0 1 10 10"></path>
       </svg>
@@ -127,6 +124,7 @@ function initConsultationForm() {
     `;
 
     const submissionData = {
+      bookingId,
       clientName,
       clientEmail,
       whatsapp,
@@ -142,78 +140,98 @@ function initConsultationForm() {
       additionalMessage
     };
 
-    // Store in session storage in case of local preview
+    // Store in session storage as local cache
     try {
       sessionStorage.setItem('nihar_consultation_data', JSON.stringify(submissionData));
     } catch (err) {
       // safe fallback
     }
 
-    // Optional background API dispatch via Web3Forms (unblockable Cloudflare infrastructure)
-    if (typeof WEB3FORMS_ACCESS_KEY !== 'undefined' && WEB3FORMS_ACCESS_KEY && WEB3FORMS_ACCESS_KEY.trim() !== '') {
-      try {
-        fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_ACCESS_KEY,
-            subject: emailSubject,
-            from_name: 'Creator Nihar Website',
-            name: clientName,
-            email: clientEmail,
-            phone: whatsapp,
-            company: company,
-            service: selectedService,
-            project: businessName,
-            topic: discussionTopic,
-            details: projectDetails,
-            date: preferredDate,
-            time: preferredTime,
-            timezone: timeZone,
-            budget: expectedBudget,
-            notes: additionalMessage,
-            booking_status: 'PENDING — Awaiting Personal Confirmation'
-          })
-        }).catch(e => console.warn('Background Web3Forms fetch error:', e));
-      } catch (err) {
-        console.warn('Web3Forms dispatch error:', err);
-      }
-    }
+    // 1. Dispatch to Web3Forms API
+    const web3Promise = (async () => {
+      if (typeof WEB3FORMS_ACCESS_KEY !== 'undefined' && WEB3FORMS_ACCESS_KEY) {
+        const payload = {
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: emailSubject,
+          from_name: 'Creator Nihar Website',
+          name: clientName,
+          email: clientEmail,
+          phone: whatsapp,
+          company: company,
+          service: selectedService,
+          project: businessName,
+          topic: discussionTopic,
+          details: projectDetails,
+          date: preferredDate,
+          time: preferredTime,
+          timezone: timeZone,
+          budget: expectedBudget,
+          notes: additionalMessage,
+          booking_id: bookingId,
+          booking_status: 'PENDING — Awaiting Personal Confirmation'
+        };
 
-    // Record in Supabase bookings table
-    try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        const resData = await res.json();
+        console.log('Consultation: Web3Forms submission response:', resData);
+        return resData;
+      }
+      return null;
+    })().catch(err => {
+      console.warn('Consultation: Web3Forms dispatch warning:', err);
+      return null;
+    });
+
+    // 2. Record in Supabase bookings table
+    const supabasePromise = (async () => {
       if (window.CNBookings && typeof window.CNBookings.createBooking === 'function') {
-        const randId = `CN-CS-${Date.now().toString().slice(-6)}`;
-        await window.CNBookings.createBooking({
-          booking_id: randId,
+        const res = await window.CNBookings.createBooking({
+          booking_id: bookingId,
           name: clientName,
           email: clientEmail,
           phone: whatsapp,
           service: selectedService,
           project: businessName || 'Not specified',
-          details: `Topic: ${discussionTopic} | Details: ${projectDetails}`,
+          details: `Topic: ${discussionTopic} | Details: ${projectDetails} | Company: ${company}`,
           budget: expectedBudget || 'To be discussed',
           deadline: `${preferredDate} at ${preferredTime} (${timeZone})`,
           additional: additionalMessage || 'None',
           status: 'pending'
         });
-        console.log('Consultation: Booking successfully recorded in Supabase:', randId);
+        console.log('Consultation: Booking successfully recorded in Supabase:', bookingId);
+        return res;
+      } else {
+        console.warn('Consultation: window.CNBookings not ready or not found.');
+        return null;
       }
-    } catch (e) {
+    })().catch(e => {
       console.warn('Consultation: Supabase booking recording warning:', e);
+      return null;
+    });
+
+    // Await both dispatches with safety timeout so user is never frozen
+    try {
+      await Promise.race([
+        Promise.allSettled([web3Promise, supabasePromise]),
+        new Promise(resolve => setTimeout(resolve, 4000))
+      ]);
+    } catch (raceErr) {
+      console.warn('Consultation: Dispatch race warning:', raceErr);
     }
 
-    // Smoothly transition to Success Screen (Section 7) after the browser dispatches POST
-    setTimeout(() => {
-      renderSuccessScreen(submissionData);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = `
-        <span>Request Free Consultation</span>
-        <svg viewBox="0 0 24 24">
-          <path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      `;
-    }, 500);
+    // Render Success Screen
+    renderSuccessScreen(submissionData);
+
+    // Restore button in case user navigates back
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnHtml;
   });
 }
 
@@ -233,16 +251,27 @@ function renderSuccessScreen(data) {
     if (serviceElem) serviceElem.textContent = data.selectedService || 'Consultation';
 
     const dateTimeElem = document.getElementById('summaryDateTime');
-    if (dateTimeElem) dateTimeElem.textContent = `${data.preferredDate} at ${data.preferredTime} (${data.timeZone})`;
+    if (dateTimeElem) dateTimeElem.textContent = `${data.preferredDate || 'Selected Date'} at ${data.preferredTime || 'Selected Time'} (${data.timeZone || 'IST'})`;
 
     const contactElem = document.getElementById('summaryContact');
-    if (contactElem) contactElem.textContent = `${data.whatsapp} | ${data.clientEmail}`;
+    if (contactElem) contactElem.textContent = `${data.whatsapp || 'Provided'} | ${data.clientEmail || 'Provided'}`;
 
-    const emailSubject = `New Free Consultation Request - ${data.clientName || 'Valued Client'}`;
+    // Update status pill to display booking reference
+    const statusPill = successPanel.querySelector('.success-status-pill span');
+    if (statusPill) {
+      if (data.bookingId) {
+        statusPill.textContent = `● Status: Pending Personal Confirmation (Ref: ${data.bookingId})`;
+      } else {
+        statusPill.textContent = `● Status: Pending Personal Confirmation`;
+      }
+    }
+
+    const emailSubject = `New Free Consultation Request - ${data.clientName || 'Valued Client'}${data.bookingId ? ` [${data.bookingId}]` : ''}`;
     const formattedEmailBody = 
 `----------------------------------------
 CREATOR NIHAR - FREE CONSULTATION REQUEST
 ----------------------------------------
+Booking Reference: ${data.bookingId || 'Pending'}
 
 Client Name: ${data.clientName || 'Not specified'}
 Email Address: ${data.clientEmail || 'Not specified'}
@@ -256,7 +285,7 @@ Project Details: ${data.projectDetails || 'Not specified'}
 
 Requested Date: ${data.preferredDate || 'Not specified'}
 Requested Time: ${data.preferredTime || 'Not specified'}
-Time Zone: ${data.timeZone || 'IST'}
+Time Zone: ${data.timeZone || 'India Standard Time (IST)'}
 Expected Budget: ${data.expectedBudget || 'To be discussed'}
 
 Additional Message:
@@ -284,13 +313,14 @@ PENDING — Awaiting Personal Confirmation by Nihar Amrawat
       const waText = 
 `*NEW FREE CONSULTATION REQUEST*
 ----------------------------------
-*Client Name:* ${data.clientName}
-*Email:* ${data.clientEmail}
-*WhatsApp:* ${data.whatsapp}
-*Service:* ${data.selectedService}
+*Booking Ref:* ${data.bookingId || 'CN-CS'}
+*Client Name:* ${data.clientName || 'Client'}
+*Email:* ${data.clientEmail || 'Not provided'}
+*WhatsApp:* ${data.whatsapp || 'Not provided'}
+*Service:* ${data.selectedService || 'Consultation'}
 *Topic:* ${data.discussionTopic || 'General Consultation'}
 *Details:* ${data.projectDetails || 'None'}
-*Requested Slot:* ${data.preferredDate} at ${data.preferredTime} (${data.timeZone})
+*Requested Slot:* ${data.preferredDate || 'Date'} at ${data.preferredTime || 'Time'} (${data.timeZone || 'IST'})
 *Budget:* ${data.expectedBudget || 'To be discussed'}
 *Status:* Pending Personal Confirmation
 ----------------------------------
