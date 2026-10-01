@@ -3736,6 +3736,17 @@ ul {
   transform: translateY(-1px);
 }
 
+.btn-rate-lesson.rated {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+.btn-rate-lesson.rated:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+}
+
 @media (max-width: 640px) {
   .feedback-poll-options {
     grid-template-columns: 1fr;

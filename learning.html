@@ -296,9 +296,10 @@
   </div>
 
   <!-- Supabase Config & Learning Engine -->
-  <script src="assets/js/supabase-config.js?v=1.5"></script>
+  <script src="assets/js/supabase-config.js?v=1.6"></script>
   <script>
     let publishedVideosCache = [];
+    let userFeedbackCache = {};
     let currentCategory = 'All';
     let currentPlayingVideoId = null;
     let currentUser = null;
@@ -338,14 +339,37 @@
       initFeedbackModal();
     });
 
+    function updateLessonCardFeedbackState(videoId, isRated) {
+      const btn = document.querySelector(`[data-rate-btn="${videoId}"]`);
+      if (btn) {
+        btn.innerHTML = isRated ? `<span>⭐ Rated</span>` : `<span>⭐ Rate</span>`;
+        btn.classList.toggle('rated', Boolean(isRated));
+      }
+    }
+
     async function loadPublishedVideos() {
       const grid = document.getElementById('videosGrid');
       grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">Streaming lessons from Supabase database...</div>`;
 
       try {
         const videos = await window.CNVideos.getPublishedVideos();
-        publishedVideosCache = videos;
+        publishedVideosCache = videos || [];
         filterAndRenderVideos();
+
+        // Background check for user's existing feedback so cards show ⭐ Rated immediately
+        if (currentUser && publishedVideosCache.length > 0) {
+          publishedVideosCache.forEach(async (v) => {
+            try {
+              const fb = await window.CNFeedback.getUserFeedback(v.id, currentUser.id);
+              if (fb) {
+                userFeedbackCache[v.id] = fb;
+                updateLessonCardFeedbackState(v.id, true);
+              }
+            } catch (e) {
+              // Silently ignore background prefetch errors
+            }
+          });
+        }
       } catch (err) {
         console.error('Error fetching published lessons:', err);
         grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #ef4444; padding: 40px;">Unable to load video lessons. Please verify connection.</div>`;
@@ -371,7 +395,9 @@
         return;
       }
 
-      grid.innerHTML = filtered.map(v => `
+      grid.innerHTML = filtered.map(v => {
+        const isRated = Boolean(userFeedbackCache[v.id]);
+        return `
         <div class="video-card">
           <div class="video-card-thumb-wrap">
             <img src="${escapeHtml(v.thumbnail_url || 'assets/images/logo.jpg')}" alt="${escapeHtml(v.title)}" class="video-card-thumb" onerror="this.src='assets/images/logo.jpg'">
@@ -396,8 +422,8 @@
                 ${Array.isArray(v.tags) && v.tags.length > 0 ? v.tags.map(t => `<span class="video-tag">#${escapeHtml(t)}</span>`).join('') : '<span class="video-tag">#CreatorNihar</span>'}
               </div>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button type="button" class="btn-rate-lesson" onclick="openFeedbackModal('${v.id}', true)">
-                  <span>⭐ Rate</span>
+                <button type="button" class="btn-rate-lesson ${isRated ? 'rated' : ''}" data-rate-btn="${v.id}" onclick="openFeedbackModal('${v.id}', true)">
+                  <span>${isRated ? '⭐ Rated' : '⭐ Rate'}</span>
                 </button>
                 <button type="button" class="btn-watch-video" onclick="openVideoPlayer('${v.id}')">
                   <span>Watch</span>
@@ -406,7 +432,8 @@
             </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function initPlayerModal() {
@@ -499,6 +526,31 @@
         modal.classList.remove('active');
       };
 
+      const showAlert = (message, type = 'error') => {
+        alertBox.className = `feedback-alert ${type}`;
+        alertBox.textContent = message;
+        alertBox.style.display = 'block';
+      };
+
+      const hideAlert = () => {
+        alertBox.className = 'feedback-alert';
+        alertBox.textContent = '';
+        alertBox.style.display = 'none';
+      };
+
+      // Failsafe timeout to prevent indefinite spinning
+      const promiseWithTimeout = (promise, ms, timeoutMessage) => {
+        let timer;
+        const timeoutPromise = new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            reject(new Error(timeoutMessage || 'Request timed out. Please try again.'));
+          }, ms);
+        });
+        return Promise.race([promise, timeoutPromise]).finally(() => {
+          clearTimeout(timer);
+        });
+      };
+
       closeBtn.addEventListener('click', closeModal);
       maybeLaterBtn.addEventListener('click', closeModal);
       modal.addEventListener('click', (e) => {
@@ -551,58 +603,72 @@
       // Form submission
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alertBox.className = 'feedback-alert';
-        alertBox.style.display = 'none';
+        hideAlert();
 
         const videoId = document.getElementById('feedbackVideoId').value;
         const rating = parseInt(ratingInput.value, 10);
         const pollResponse = pollInput.value;
         const feedbackText = document.getElementById('feedbackText').value.trim();
 
-        if (!rating) {
-          alertBox.className = 'feedback-alert error';
-          alertBox.textContent = 'Please choose a star rating (1–5 stars).';
+        if (!videoId) {
+          showAlert('Lesson ID not found. Please refresh the page and try again.', 'error');
+          return;
+        }
+
+        if (!rating || rating < 1 || rating > 5) {
+          showAlert('Please choose a star rating (1–5 stars).', 'error');
           return;
         }
 
         if (!pollResponse) {
-          alertBox.className = 'feedback-alert error';
-          alertBox.textContent = 'Please select a voting poll option.';
+          showAlert('Please select a voting poll option.', 'error');
           return;
         }
 
-        const user = await window.CNAuth.getUser();
+        // Verify authenticated user
+        const user = currentUser || (await window.CNAuth.getUser());
         if (!user) {
-          alertBox.className = 'feedback-alert error';
-          alertBox.textContent = 'You must be logged in to submit feedback.';
+          showAlert('You must be logged in to submit feedback.', 'error');
           return;
         }
 
+        // Enter loading state
         submitBtn.disabled = true;
         const originalBtnText = submitBtn.innerHTML;
         submitBtn.innerHTML = `<span>Submitting...</span>`;
 
         try {
-          await window.CNFeedback.submitFeedback({
-            video_id: videoId,
-            user_id: user.id,
-            user_email: user.email,
-            rating: rating,
-            poll_response: pollResponse,
-            feedback_text: feedbackText
-          });
+          // Await Supabase submission with 12s timeout failsafe
+          const result = await promiseWithTimeout(
+            window.CNFeedback.submitFeedback({
+              video_id: videoId,
+              user_id: user.id,
+              user_email: user.email,
+              rating: rating,
+              poll_response: pollResponse,
+              feedback_text: feedbackText
+            }),
+            12000,
+            'Feedback submission timed out. Please check your internet connection and try again.'
+          );
 
-          alertBox.className = 'feedback-alert success';
-          alertBox.textContent = '✓ Thank you! Your feedback and vote have been successfully saved.';
+          // Update local cache & card state
+          userFeedbackCache[videoId] = result;
+          updateLessonCardFeedbackState(videoId, true);
+
+          showAlert('✓ Thank you! Your feedback and vote have been successfully saved.', 'success');
 
           setTimeout(() => {
             closeModal();
-            alertBox.style.display = 'none';
+            hideAlert();
           }, 1400);
         } catch (err) {
-          alertBox.className = 'feedback-alert error';
-          alertBox.textContent = err.message || 'Error submitting feedback. Please try again.';
+          // Explicitly log complete Supabase error to console
+          console.error('Supabase feedback submission error:', err);
+          showAlert(err.message || 'Error submitting feedback. Please try again.', 'error');
+          // Keep popup open for retry
         } finally {
+          // Stop loading state unconditionally
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalBtnText;
         }
@@ -625,9 +691,12 @@
       const alertBox = document.getElementById('feedbackAlertBox');
       const submitBtn = document.getElementById('submitFeedbackBtn');
 
+      // Clear alert box
+      alertBox.className = 'feedback-alert';
+      alertBox.textContent = '';
       alertBox.style.display = 'none';
-      videoIdInput.value = videoId;
 
+      videoIdInput.value = videoId;
       badge.textContent = isManual ? '⭐ Lesson Feedback' : '🎬 Video Completed';
       modalTitle.textContent = 'Rate This Lesson';
       subtitle.textContent = `Lesson #${v.lesson_number}: ${v.title}`;
@@ -650,11 +719,18 @@
         </svg>
       `;
 
-      // Check if user already submitted feedback
-      const user = await window.CNAuth.getUser();
+      // Check if user already submitted feedback (from cache or database)
+      const user = currentUser || (await window.CNAuth.getUser());
       if (user) {
         try {
-          const existing = await window.CNFeedback.getUserFeedback(videoId, user.id);
+          let existing = userFeedbackCache[videoId];
+          if (!existing) {
+            existing = await window.CNFeedback.getUserFeedback(videoId, user.id);
+            if (existing) {
+              userFeedbackCache[videoId] = existing;
+            }
+          }
+
           if (existing) {
             // Prepopulate existing feedback for seamless editing
             ratingInput.value = existing.rating;
@@ -670,7 +746,7 @@
               c.classList.toggle('selected', c.getAttribute('data-poll') === existing.poll_response);
             });
 
-            feedbackText.value = existing.feedback_text || '';
+            feedbackText.value = existing.feedback_text || existing.feedback || '';
             modalTitle.textContent = 'Update Lesson Feedback';
             submitBtn.innerHTML = `
               <span>Update Feedback</span>

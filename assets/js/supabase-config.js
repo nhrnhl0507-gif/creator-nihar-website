@@ -620,18 +620,31 @@
   const CNFeedback = {
     // Get single feedback submitted by a user for a video (if any)
     getUserFeedback: async (videoId, userId) => {
-      if (!supabaseClient || !videoId || !userId) return null;
+      const client = window.supabaseClient || supabaseClient;
+      if (!client || !videoId) return null;
       try {
-        const { data, error } = await supabaseClient
+        let uid = userId;
+        if (!uid) {
+          const { data: sessionData } = await client.auth.getSession();
+          uid = sessionData?.session?.user?.id;
+        }
+        if (!uid) return null;
+
+        const { data, error } = await client
           .from('video_feedback')
           .select('*')
           .eq('video_id', videoId)
-          .eq('user_id', userId)
+          .eq('user_id', uid)
           .maybeSingle();
 
         if (error) {
           console.warn('CNFeedback.getUserFeedback warning:', error);
           return null;
+        }
+        if (data) {
+          // Normalize both feedback_text and feedback fields for complete compatibility
+          data.feedback_text = data.feedback_text || data.feedback || '';
+          data.feedback = data.feedback || data.feedback_text || '';
         }
         return data;
       } catch (err) {
@@ -640,54 +653,124 @@
       }
     },
 
-    // Submit or update user feedback with duplicate protection
+    // Submit or update user feedback with duplicate protection & session verification
     submitFeedback: async (payload) => {
-      if (!supabaseClient) throw new Error('Supabase client not initialized.');
-      if (!payload.video_id || !payload.user_id || !payload.rating || !payload.poll_response) {
-        throw new Error('Please select a star rating and poll option.');
+      const client = window.supabaseClient || supabaseClient;
+      if (!client) {
+        const err = new Error('Supabase client is not initialized.');
+        console.error('CNFeedback.submitFeedback error:', err);
+        throw err;
       }
+
+      // 1. Verify that a valid authenticated Supabase session exists
+      const { data: sessionData, error: sessionError } = await client.auth.getSession();
+      if (sessionError) {
+        console.error('CNFeedback.submitFeedback sessionError:', sessionError);
+        throw new Error(sessionError.message || 'Authentication session error. Please log in again.');
+      }
+
+      const session = sessionData?.session;
+      if (!session || !session.user || !session.user.id) {
+        const authErr = new Error('You must have an active logged-in session to submit feedback. Please log in and try again.');
+        console.error('CNFeedback.submitFeedback auth error:', authErr);
+        throw authErr;
+      }
+
+      // 2. Use authenticated user's auth.uid as user_id
+      const authUid = session.user.id;
+      const authEmail = session.user.email || payload.user_email || '';
+
+      // 3. Validation
+      if (!payload.video_id) {
+        throw new Error('Lesson ID is missing. Please reload the page.');
+      }
+      const rating = parseInt(payload.rating, 10);
+      if (!rating || rating < 1 || rating > 5) {
+        throw new Error('Please select a star rating (1–5 stars).');
+      }
+      if (!payload.poll_response) {
+        throw new Error('Please select a voting poll option.');
+      }
+
+      // Handle user's written feedback - support both feedback_text and feedback
+      const textVal = (payload.feedback_text !== undefined ? payload.feedback_text : (payload.feedback || '')).trim();
+      const now = new Date().toISOString();
 
       const feedbackData = {
         video_id: payload.video_id,
-        user_id: payload.user_id,
-        user_email: payload.user_email || '',
-        rating: parseInt(payload.rating, 10),
+        user_id: authUid,
+        user_email: authEmail,
+        rating: rating,
         poll_response: payload.poll_response,
-        feedback_text: (payload.feedback_text || '').trim(),
-        updated_at: new Date().toISOString()
+        feedback_text: textVal,
+        feedback: textVal,
+        updated_at: now
       };
 
-      // Check if record already exists to perform idempotent update or insert
-      const { data: existing } = await supabaseClient
+      // 4. Query for existing feedback record by (video_id, user_id)
+      const { data: existing, error: selectError } = await client
         .from('video_feedback')
         .select('id')
         .eq('video_id', payload.video_id)
-        .eq('user_id', payload.user_id)
+        .eq('user_id', authUid)
         .maybeSingle();
 
+      if (selectError) {
+        console.error('CNFeedback.submitFeedback select error:', selectError);
+        throw new Error(selectError.message || 'Error checking existing feedback record.');
+      }
+
+      // 5. Update if existing, Insert if new
       if (existing && existing.id) {
-        const { error } = await supabaseClient
+        const { data: updateData, error: updateError } = await client
           .from('video_feedback')
           .update(feedbackData)
-          .eq('id', existing.id);
+          .eq('id', existing.id)
+          .select();
 
-        if (error) throw error;
-        return { success: true, updated: true, id: existing.id, ...feedbackData };
+        if (updateError) {
+          console.error('CNFeedback.submitFeedback update error:', updateError);
+          throw new Error(updateError.message || 'Failed to update feedback. Please try again.');
+        }
+
+        return {
+          success: true,
+          updated: true,
+          id: existing.id,
+          ...feedbackData
+        };
       } else {
-        const { error } = await supabaseClient
-          .from('video_feedback')
-          .insert([feedbackData]);
+        const insertPayload = {
+          ...feedbackData,
+          created_at: now
+        };
 
-        if (error) throw error;
-        return { success: true, updated: false, ...feedbackData };
+        const { data: insertData, error: insertError } = await client
+          .from('video_feedback')
+          .insert([insertPayload])
+          .select();
+
+        if (insertError) {
+          console.error('CNFeedback.submitFeedback insert error:', insertError);
+          throw new Error(insertError.message || 'Failed to save feedback. Please try again.');
+        }
+
+        const newId = (insertData && insertData[0] && insertData[0].id) ? insertData[0].id : null;
+        return {
+          success: true,
+          updated: false,
+          id: newId,
+          ...insertPayload
+        };
       }
     },
 
     // Fetch all feedback with lesson metadata (Admin view)
     getAllFeedback: async () => {
-      if (!supabaseClient) return [];
+      const client = window.supabaseClient || supabaseClient;
+      if (!client) return [];
       try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await client
           .from('video_feedback')
           .select(`
             *,
@@ -703,14 +786,17 @@
         if (error) {
           console.warn('getAllFeedback join fallback:', error);
           // Fallback manual join
-          const { data: fbData, error: fbError } = await supabaseClient
+          const { data: fbData, error: fbError } = await client
             .from('video_feedback')
             .select('*')
             .order('created_at', { ascending: false });
 
-          if (fbError) throw fbError;
+          if (fbError) {
+            console.error('getAllFeedback fallback error:', fbError);
+            throw fbError;
+          }
 
-          const { data: vidData } = await supabaseClient
+          const { data: vidData } = await client
             .from('videos')
             .select('id, title, lesson_number, category');
 
@@ -719,11 +805,17 @@
 
           return (fbData || []).map(fb => ({
             ...fb,
+            feedback_text: fb.feedback_text || fb.feedback || '',
+            feedback: fb.feedback || fb.feedback_text || '',
             videos: vidMap[fb.video_id] || null
           }));
         }
 
-        return data || [];
+        return (data || []).map(fb => ({
+          ...fb,
+          feedback_text: fb.feedback_text || fb.feedback || '',
+          feedback: fb.feedback || fb.feedback_text || ''
+        }));
       } catch (err) {
         console.error('getAllFeedback error:', err);
         return [];
@@ -732,13 +824,17 @@
 
     // Delete feedback record (Admin only)
     deleteFeedback: async (id) => {
-      if (!supabaseClient) throw new Error('Supabase client not initialized.');
-      const { error } = await supabaseClient
+      const client = window.supabaseClient || supabaseClient;
+      if (!client) throw new Error('Supabase client not initialized.');
+      const { error } = await client
         .from('video_feedback')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('deleteFeedback error:', error);
+        throw error;
+      }
       return true;
     }
   };
