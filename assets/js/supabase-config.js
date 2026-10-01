@@ -616,6 +616,18 @@
     }
   };
 
+  // Helper to generate RFC4122 v4 UUID for tables without database default
+  function generateUUID() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
   // --- VIDEO FEEDBACK & VOTING POLL API ---
   const CNFeedback = {
     // Get single feedback submitted by a user for a video (if any)
@@ -740,7 +752,9 @@
           ...feedbackData
         };
       } else {
+        const feedbackId = generateUUID();
         const insertPayload = {
+          id: feedbackId,
           ...feedbackData,
           created_at: now
         };
@@ -755,7 +769,7 @@
           throw new Error(insertError.message || 'Failed to save feedback. Please try again.');
         }
 
-        const newId = (insertData && insertData[0] && insertData[0].id) ? insertData[0].id : null;
+        const newId = (insertData && insertData[0] && insertData[0].id) ? insertData[0].id : feedbackId;
         return {
           success: true,
           updated: false,
